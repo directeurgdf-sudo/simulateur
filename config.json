@@ -1,31 +1,45 @@
 {
   "inputs": [
     {
-      "label": "Exemple: Chiffre d'affaires",
-      "cell": "B3",
+      "label": "Paramètre A",
+      "cell": "A4",
       "type": "number",
       "min": 0,
       "max": 1000000,
-      "step": 1000,
-      "default": 50000,
+      "step": 1,
+      "default": 674,
       "sheet": "Feuil1"
     },
     {
-      "label": "Exemple: Taux TVA",
+      "label": "Paramètre B",
       "cell": "B4",
       "type": "number",
-      "min": 0.0,
-      "max": 1.0,
-      "step": 0.01,
-      "default": 0.20,
+      "min": 0,
+      "max": 1000000,
+      "step": 1,
+      "default": 567,
+      "sheet": "Feuil1"
+    },
+    {
+      "label": "Paramètre C",
+      "cell": "C4",
+      "type": "number",
+      "min": 0,
+      "max": 10000000,
+      "step": 1000,
+      "default": 2642740.9,
       "sheet": "Feuil1"
     }
   ],
   "outputs": [
-    {
-      "label": "Exemple: Résultat net",
-      "cell": "E10",
-      "sheet": "Feuil1"
-    }
+    { "label": "Résultat E4", "cell": "E4", "sheet": "Feuil1" },
+    { "label": "Résultat F4", "cell": "F4", "sheet": "Feuil1" },
+    { "label": "Résultat G4", "cell": "G4", "sheet": "Feuil1" },
+    { "label": "Résultat H4", "cell": "H4", "sheet": "Feuil1" },
+    { "label": "Résultat J4", "cell": "J4", "sheet": "Feuil1" },
+    { "label": "Résultat K4", "cell": "K4", "sheet": "Feuil1" },
+    { "label": "Résultat L4", "cell": "L4", "sheet": "Feuil1" },
+    { "label": "Résultat M4", "cell": "M4", "sheet": "Feuil1" },
+    { "label": "Résultat O4", "cell": "O4", "sheet": "Feuil1" }
   ]
 }
