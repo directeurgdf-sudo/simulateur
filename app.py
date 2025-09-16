@@ -1,7 +1,12 @@
 import streamlit as st
+import re
 
 # ---------------- Config ----------------
-st.set_page_config(page_title="Simulateur SAS Gîtes de France", page_icon="🏡", layout="wide")
+st.set_page_config(
+    page_title="Simulateur SAS Gîtes de France",
+    page_icon="🏡",
+    layout="wide",
+)
 
 # ---------------- Styles ----------------
 BRAND_GREEN = "#4bab77"
@@ -17,15 +22,17 @@ st.markdown(f"""
 /* Sidebar */
 section[data-testid="stSidebar"] {{ background:{BRAND_GREEN} !important; }}
 section[data-testid="stSidebar"] label {{ color:#fff !important; }}
-section[data-testid="stSidebar"] input {{ color:#111827 !important; background:#fff !important; }}
+section[data-testid="stSidebar"] input {{
+  color:#111827 !important; background:#fff !important; border-radius:8px;
+}}
 
 /* Pills */
 .pill {{
   display:inline-block; padding:10px 14px; border-radius:20px;
   font-weight:700; font-size:1.05rem; margin-bottom:8px;
 }}
-.pill-green {{ background:{BRAND_GREEN}; color:#fff; }}
-.pill-outline {{ background:#fff; color:#111827; border:2px solid {BRAND_GREEN}; }}
+.pill-green  {{ background:{BRAND_GREEN}; color:#fff; }}
+.pill-outline{{ background:#fff; color:#111827; border:2px solid {BRAND_GREEN}; }}
 
 /* Texte en vert (taux, inclus) */
 .accent {{ color:{BRAND_GREEN}; font-weight:800; }}
@@ -48,12 +55,23 @@ section[data-testid="stSidebar"] input {{ color:#111827 !important; background:#
 
 # ---------------- Utilitaires ----------------
 def euro(x: float) -> str:
-    """Format 1 234 567,89"""
+    """Format 1 234 567,89 (espaces + virgule)"""
     return f"{x:,.2f}".replace(",", " ").replace(".", ",")
+
+def euro_int(n: int) -> str:
+    """Format 1234567 -> '1 234 567' (pour affichage dans la sidebar)"""
+    return f"{n:,}".replace(",", " ")
+
+def read_int_with_grouping(label: str, default: int) -> int:
+    """Text input qui affiche des milliers et parse un entier proprement."""
+    shown = euro_int(default)
+    raw = st.sidebar.text_input(label, value=shown)
+    digits = re.sub(r"[^\d]", "", raw or "")
+    return int(digits) if digits else default
 
 def valeur(label_html: str, val: float):
     """Libellé (HTML autorisé) + valeur uniforme."""
-    st.markdown(label_html, unsafe_allow_html=True)                     # <= ici le HTML est rendu
+    st.markdown(label_html, unsafe_allow_html=True)
     st.markdown(f"<div class='big-val'>{euro(val)}</div>", unsafe_allow_html=True)
 
 # ---------------- Titre ----------------
@@ -66,23 +84,26 @@ st.markdown("""
 # ---------------- Entrées ----------------
 st.sidebar.header("✍️ Remplissez")
 
+# Entrées avec séparateurs de milliers dans la sidebar
 A = read_int_with_grouping("Votre parc d'annonces en SR (exclusivités)", 650)
 B = read_int_with_grouping("Votre parc d'annonces en RP/PP (partagés)", 300)
 C = read_int_with_grouping("TOTAL des Loyers propriétaires (€)", 4_000_000)
 F = read_int_with_grouping("Votre contribution volontaire à la campagne de marque (€)", 15_000)
 
-
 # ---------------- Calculs ----------------
-E = (A * 20) + (B * 30)          # forfaitaires actuel
-Fv = float(F)                     # campagne actuel
-G = float(C) * 0.0084             # 0,84 %
-H = E + Fv + G
+# Modèle actuel
+E = (A * 20) + (B * 30)     # contributions forfaitaires
+Fv = float(F)               # contribution campagne (modèle actuel)
+G = float(C) * 0.0084       # 0,84 %
+H = E + Fv + G              # total
 
-J = (A * 20) + (B * 30)          # forfaitaires 2026
-K = 0.0                           # campagne 2026 (inclus)
-L = float(C) * 0.0114             # 1,14 %
-M = J + K + L
+# Proposition 2026
+J = (A * 20) + (B * 30)     # contributions forfaitaires
+K = 0.0                     # campagne incluse (0 en 2026)
+L = float(C) * 0.0114       # 1,14 %
+M = J + K + L               # total
 
+# Différences
 dE, dF, dG = (J - E), (K - Fv), (L - G)
 dH = M - H
 
