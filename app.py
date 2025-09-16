@@ -1,5 +1,6 @@
 import streamlit as st
 from pathlib import Path
+import re
 
 # ---------------- Config ----------------
 st.set_page_config(page_title="Simulateur SAS", page_icon="🏡", layout="wide")
@@ -47,28 +48,52 @@ else:
 
 st.markdown(" ")  # saut de ligne après le titre
 
-# ---------------- Entrées ----------------
-st.sidebar.header("✍️ Remplissez")
-A = st.sidebar.number_input("Votre parc d'annonces en SR (exclusivités)", min_value=0, step=1, value=674)
-B = st.sidebar.number_input("Votre parc d'annonces en RP/PP (partagés)", min_value=0, step=1, value=567)
-C = st.sidebar.number_input("TOTAL des Loyers propriétaires (€)", min_value=0, step=1000, value=2642740)
-F = st.sidebar.number_input("Votre contribution volontaire à la campagne de marque (€)", min_value=0, step=100, value=10000)
-
-# ---------------- Fonction format euro ----------------
+# ---------------- Utilitaires ----------------
 def euro(x: float) -> str:
+    """Format 1 234 567,89"""
     return f"{x:,.2f}".replace(",", " ").replace(".", ",")
+
+def thousands(n: int) -> str:
+    """1 234 567"""
+    return f"{n:,}".replace(",", " ")
+
+def parse_int(txt: str, fallback: int) -> int:
+    """Conserve uniquement les chiffres ; fallback si vide/incorrect."""
+    if txt is None:
+        return fallback
+    digits = re.sub(r"[^\d]", "", str(txt))
+    try:
+        return int(digits) if digits != "" else fallback
+    except ValueError:
+        return fallback
+
+def sidebar_number_with_grouping(label: str, default: int) -> int:
+    """Text input en sidebar avec séparateurs de milliers visibles."""
+    shown = thousands(default)
+    entered = st.sidebar.text_input(label, value=shown)
+    val = parse_int(entered, default)
+    # réécrit la valeur formatée si l'utilisateur l'a modifiée sans espaces
+    # (pas obligatoire, mais garde un affichage propre aux prochains reruns)
+    return val
+
+# ---------------- Entrées (avec séparateurs de milliers) ----------------
+st.sidebar.header("✍️ Remplissez")
+A = sidebar_number_with_grouping("Votre parc d'annonces en SR (exclusivités)", 650)
+B = sidebar_number_with_grouping("Votre parc d'annonces en RP/PP (partagés)", 300)
+C = sidebar_number_with_grouping("TOTAL des Loyers propriétaires (€)", 4_000_000)
+F = sidebar_number_with_grouping("Votre contribution volontaire à la campagne de marque (€)", 15_000)
 
 # ---------------- Calculs ----------------
 # Modèle actuel
-E = (A * 20) + (B * 30)
-Fv = F
-G = C * 0.0084
-H = E + Fv + G
+E = (A * 20) + (B * 30)   # contributions forfaitaires
+Fv = float(F)             # contribution volontaire (inclus)
+G = float(C) * 0.0084     # 0,84 %
+H = E + Fv + G            # total actuel
 
 # Modèle 2026
 J = (A * 20) + (B * 30)
 K = 0.0
-L = C * 0.0114
+L = float(C) * 0.0114     # 1,14 %
 M = J + K + L
 
 # Différence
