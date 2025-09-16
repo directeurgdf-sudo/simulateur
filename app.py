@@ -12,7 +12,35 @@ st.markdown("""
 
 /* Sidebar verte */
 section[data-testid="stSidebar"] { background:#4bab77 !important; }
-section[data-testid="stSidebar"] * { color:#fff !important; }
+
+/* Labels et titres de la sidebar en blanc */
+section[data-testid="stSidebar"] h1, 
+section[data-testid="stSidebar"] h2, 
+section[data-testid="stSidebar"] h3, 
+section[data-testid="stSidebar"] label {
+  color:#fff !important;
+}
+
+/* Champs de saisie : texte noir + fond blanc */
+section[data-testid="stSidebar"] input[type="text"],
+section[data-testid="stSidebar"] input[type="number"],
+section[data-testid="stSidebar"] textarea,
+section[data-testid="stSidebar"] .stNumberInput input {
+  color:#1f2937 !important;   /* texte sombre */
+  background:#ffffff !important;
+  border-radius:10px;
+}
+
+/* Placeholder lisible */
+section[data-testid="stSidebar"] ::placeholder {
+  color:#6b7280 !important;   /* gris */
+  opacity:1;
+}
+
+/* Boutons +/- des number_input */
+section[data-testid="stSidebar"] .stNumberInput button {
+  color:#1f2937 !important;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -56,10 +84,9 @@ F = st.sidebar.number_input(
     format="%.2f",
 )
 
-
+# ---------------- Fonction format euro ----------------
 def euro(x: float) -> str:
     return f"{x:,.2f}".replace(",", " ").replace(".", ",")
-
 
 # ---------------- Calculs ----------------
 # Modèle actuel (E,F,G,H)
