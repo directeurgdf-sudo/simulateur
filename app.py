@@ -14,23 +14,25 @@ st.markdown("""
 section[data-testid="stSidebar"] { background:#4bab77 !important; }
 section[data-testid="stSidebar"] * { color:#fff !important; }
 
-/* Cards */
+/* Cards blanches (pas de fonds colorés -> pas de "barres") */
 .card {
+  background: #fff;
   border-radius: 14px;
   padding: 18px 20px;
   box-shadow: 0 6px 18px rgba(0,0,0,.08);
   margin-bottom: 20px;
+  border: 1px solid rgba(0,0,0,.06);
 }
-.card h3 {
-  margin-top: 0;
-  font-weight: 700;
-}
+.card h3 { margin-top: 0; font-weight: 700; }
 .card hr { border: none; border-top:1px solid rgba(0,0,0,.08); margin:14px 0; }
 
-/* Couleurs */
-.card.actual { background: #eef7ff; }   /* bleu très clair */
-.card.future { background: #eefcf0; }   /* vert très clair */
-.card.diff   { background: #fff3e8; }   /* orange très clair */
+/* Bordure gauche colorée pour différencier les 3 colonnes */
+.card.actual { border-left: 8px solid #4da3ff; }  /* bleu */
+.card.future { border-left: 8px solid #62c787; }  /* vert */
+.card.diff   { border-left: 8px solid #ffa85c; }  /* orange */
+
+/* Sécurité : annule tout éventuel fond résiduel */
+.card.actual, .card.future, .card.diff { background: #fff !important; }
 </style>
 """, unsafe_allow_html=True)
 
