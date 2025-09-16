@@ -12,11 +12,8 @@ st.markdown(f"""
 @import url('https://fonts.googleapis.com/css2?family=Raleway:wght@400;600;700&display=swap');
 * {{ font-family: 'Raleway', sans-serif; }}
 
-/* Titre : plus haut et plus d'espace sous le titre */
-.header-wrap {{
-  margin-top:-40px;    /* remonte le titre */
-  margin-bottom:40px;  /* espace sous le titre */
-}}
+/* Titre plus haut + espace */
+.header-wrap {{ margin-top:-40px; margin-bottom:40px; }}
 
 /* Sidebar verte */
 section[data-testid="stSidebar"] {{ background:{BRAND_GREEN} !important; }}
@@ -46,8 +43,10 @@ section[data-testid="stSidebar"] .stNumberInput input {{
 /* Accent pour les % */
 .accent {{ color:{BRAND_GREEN}; font-weight:700; }}
 
-/* Valeur normalisée (loyers) */
-.value-normal {{ font-size:1rem; font-weight:600; color:#111827; }}
+/* Ligne label + valeur (uniforme dans les 3 colonnes) */
+.kv-row {{ display:flex; justify-content:space-between; align-items:baseline; margin:6px 0 8px; }}
+.kv-row .kv-label {{ font-size:1rem; color:#374151; }}
+.kv-row .kv-val   {{ font-size:1.05rem; font-weight:600; color:#111827; }}
 
 /* Écart total coloré */
 .value-pos {{ color:#e03a3a; font-weight:700; font-size:2rem; }}
@@ -70,19 +69,20 @@ def euro(x: float) -> str:
     return f"{x:,.2f}".replace(",", " ").replace(".", ",")
 
 def thousands(n: int) -> str:
-    """1 234 567"""
     return f"{n:,}".replace(",", " ")
 
 def parse_int(txt: str, fallback: int) -> int:
-    """Garde uniquement les chiffres ; fallback si vide/incorrect."""
     digits = re.sub(r"[^\d]", "", str(txt or ""))
     return int(digits) if digits else fallback
 
 def sidebar_number_with_grouping(label: str, default: int) -> int:
-    """Text input en sidebar avec séparateurs de milliers visibles."""
     shown = thousands(default)
     entered = st.sidebar.text_input(label, value=shown)
     return parse_int(entered, default)
+
+def kv_row(label_html: str, value_text: str) -> str:
+    """Une ligne 'label + valeur' cohérente partout."""
+    return f'<div class="kv-row"><div class="kv-label">{label_html}</div><div class="kv-val">{value_text}</div></div>'
 
 # ---------------- Entrées ----------------
 st.sidebar.header("✍️ Remplissez")
@@ -116,8 +116,7 @@ with col1:
     st.write("")
     st.metric("Contributions forfaitaires", euro(E))
     st.metric("Contribution volontaire à la campagne de Marque (inclus)", euro(Fv))
-    st.markdown('Contribution sur les loyers <span class="accent">0,84%</span>', unsafe_allow_html=True)
-    st.markdown(f"<div class='value-normal'>{euro(G)}</div>", unsafe_allow_html=True)
+    st.markdown(kv_row('Contribution sur les loyers <span class="accent">0,84%</span>', euro(G)), unsafe_allow_html=True)
     st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
     st.metric("TOTAL", euro(H))
 
@@ -126,8 +125,7 @@ with col2:
     st.write("")
     st.metric("Contributions forfaitaires", euro(J))
     st.metric("Contribution volontaire à la campagne de Marque (inclus)", euro(K))
-    st.markdown('Contribution sur les loyers <span class="accent">1,14%</span>', unsafe_allow_html=True)
-    st.markdown(f"<div class='value-normal'>{euro(L)}</div>", unsafe_allow_html=True)
+    st.markdown(kv_row('Contribution sur les loyers <span class="accent">1,14%</span>', euro(L)), unsafe_allow_html=True)
     st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
     st.metric("TOTAL", euro(M))
 
@@ -136,7 +134,8 @@ with col3:
     st.write("")
     st.metric("Écart contributions forfaitaires", euro(dE))
     st.metric("Écart contribution volontaire", euro(dF))
-    st.metric("Écart contribution loyers", euro(dG))
+    # même gabarit pour la colonne Différence -> cohérence visuelle
+    st.markdown(kv_row("Écart contribution loyers", euro(dG)), unsafe_allow_html=True)
     st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
 
     # Écart total coloré selon le signe
