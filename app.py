@@ -65,10 +65,16 @@ st.markdown("""
 
 # ---------------- Entrées ----------------
 st.sidebar.header("✍️ Remplissez")
-A = st.sidebar.number_input("Votre parc d'annonces en SR (exclusivités)", min_value=0, value=650, step=1, format="%d")
-B = st.sidebar.number_input("Votre parc d'annonces en RP/PP (partagés)", min_value=0, value=300, step=1, format="%d")
-C = st.sidebar.number_input("TOTAL des Loyers propriétaires (€)", min_value=0, value=4_000_000, step=1000, format="%d")
-F = st.sidebar.number_input("Votre contribution volontaire à la campagne de marque (€)", min_value=0, value=15_000, step=100, format="%d")
+
+# Si tu veux aussi des séparateurs sur les compteurs A/B, garde read_int_with_grouping ;
+# sinon tu peux remettre number_input pour eux.
+A = read_int_with_grouping("Votre parc d'annonces en SR (exclusivités)", 650)
+B = read_int_with_grouping("Votre parc d'annonces en RP/PP (partagés)", 300)
+
+# Montants en € avec séparateurs
+C = read_int_with_grouping("TOTAL des Loyers propriétaires (€)", 4_000_000)
+F = read_int_with_grouping("Votre contribution volontaire à la campagne de marque (€)", 15_000)
+
 
 # ---------------- Calculs ----------------
 E = (A * 20) + (B * 30)          # forfaitaires actuel
