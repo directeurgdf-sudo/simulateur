@@ -45,7 +45,8 @@ section[data-testid="stSidebar"] .stNumberInput input {{
 .label-small {{ color:#6b7280; text-transform:uppercase; letter-spacing:.04em; font-size:.9rem; }}
 .hr {{ border-top:1px solid #e5e7eb; margin:16px 0; }}
 
-.accent {{ color:{BRAND_GREEN}; font-weight:700; }}
+/* Vert + gras pour les accents (% et (inclus)) */
+.accent {{ color:{BRAND_GREEN}; font-weight:800; }}
 </style>
 """, unsafe_allow_html=True)
 
@@ -81,15 +82,15 @@ F = sidebar_number_with_grouping("Votre contribution volontaire à la campagne d
 
 # ---------------- Calculs ----------------
 # Modèle actuel
-E = (A * 20) + (B * 30)
-Fv = float(F)
-G = float(C) * 0.0084
+E = (A * 20) + (B * 30)     # contributions forfaitaires
+Fv = float(F)               # contribution à la campagne (pas "inclus" ici)
+G = float(C) * 0.0084       # 0,84 %
 H = E + Fv + G
 
 # Proposition de modèle 2026
 J = (A * 20) + (B * 30)
 K = 0.0
-L = float(C) * 0.0114
+L = float(C) * 0.0114       # 1,14 %
 M = J + K + L
 
 # Différence
@@ -103,8 +104,10 @@ with col1:
     st.markdown('<span class="pill">Modèle actuel</span>', unsafe_allow_html=True)
     st.write("")
     st.metric("Contributions forfaitaires", euro(E))
-    st.metric("Contribution volontaire à la campagne de Marque", euro(Fv))
-    st.metric("Contribution sur les loyers <span class='accent'>0,84%</span>", euro(G))
+    st.metric("Contribution à la campagne de Marque", euro(Fv))
+    # Taux 0,84 % en vert + gras (HTML dans markdown), valeur juste en dessous
+    st.markdown('Contribution sur les loyers <span class="accent">0,84&nbsp;%</span>', unsafe_allow_html=True)
+    st.metric(label="", value=euro(G))
     st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
     st.metric("TOTAL", euro(H))
 
@@ -112,8 +115,11 @@ with col2:
     st.markdown('<span class="pill">Proposition de modèle 2026</span>', unsafe_allow_html=True)
     st.write("")
     st.metric("Contributions forfaitaires", euro(J))
-    st.metric("Contribution à la campagne de Marque (inclus)", euro(K))  # <- corrigé
-    st.metric("Contribution sur les loyers <span class='accent'>1,14%</span>", euro(L))
+    # "(inclus)" en vert + gras
+    st.markdown('Contribution à la campagne de Marque <span class="accent">(inclus)</span>', unsafe_allow_html=True)
+    st.metric(label="", value=euro(K))
+    st.markdown('Contribution sur les loyers <span class="accent">1,14&nbsp;%</span>', unsafe_allow_html=True)
+    st.metric(label="", value=euro(L))
     st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
     st.metric("TOTAL", euro(M))
 
@@ -121,10 +127,11 @@ with col3:
     st.markdown('<span class="pill-neutral">Différence (2026 – actuel)</span>', unsafe_allow_html=True)
     st.write("")
     st.metric("Écart contributions forfaitaires", euro(dE))
-    st.metric("Écart contribution volontaire", euro(dF))
+    st.metric("Écart contribution à la campagne", euro(dF))
     st.metric("Écart contribution loyers", euro(dG))
     st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
 
+    # Écart total coloré selon le signe
     if dH >= 0:
         st.markdown(f'<div class="label-small">ÉCART TOTAL</div><div class="value-pos">{euro(dH)}</div>', unsafe_allow_html=True)
     else:
