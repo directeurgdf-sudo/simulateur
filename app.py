@@ -66,12 +66,8 @@ st.markdown("""
 # ---------------- Entrées ----------------
 st.sidebar.header("✍️ Remplissez")
 
-# Si tu veux aussi des séparateurs sur les compteurs A/B, garde read_int_with_grouping ;
-# sinon tu peux remettre number_input pour eux.
 A = read_int_with_grouping("Votre parc d'annonces en SR (exclusivités)", 650)
 B = read_int_with_grouping("Votre parc d'annonces en RP/PP (partagés)", 300)
-
-# Montants en € avec séparateurs
 C = read_int_with_grouping("TOTAL des Loyers propriétaires (€)", 4_000_000)
 F = read_int_with_grouping("Votre contribution volontaire à la campagne de marque (€)", 15_000)
 
