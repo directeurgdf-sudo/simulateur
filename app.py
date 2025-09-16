@@ -1,5 +1,4 @@
 import streamlit as st
-import re
 
 # ---------------- Config ----------------
 st.set_page_config(page_title="Simulateur SAS Gîtes de France", page_icon="🏡", layout="wide")
@@ -28,24 +27,34 @@ section[data-testid="stSidebar"] input {{ color:#111827 !important; background:#
 .pill-green {{ background:{BRAND_GREEN}; color:#fff; }}
 .pill-outline {{ background:#fff; color:#111827; border:2px solid {BRAND_GREEN}; }}
 
-/* Accents verts (taux, "(inclus)") */
+/* Texte en vert (taux, inclus) */
 .accent {{ color:{BRAND_GREEN}; font-weight:800; }}
 
-/* Valeur compacte (évite le trou laissé par st.metric(label="")) */
+/* Valeurs uniformes */
 .big-val {{
-  font-size:1.6rem; line-height:1.25; color:#111827; margin:4px 0 14px;
-  font-weight:600;   /* pas plus gras que le reste */
+  font-size:1.6rem; line-height:1.3; color:#111827;
+  margin:4px 0 14px; font-weight:500;
 }}
 
-/* Lignes de séparation avant TOTAL */
+/* Lignes de séparation */
 .hr {{ border-top:1px solid #e5e7eb; margin:16px 0; }}
 
-/* Écart total coloré */
+/* Écart total */
 .value-pos {{ color:#e03a3a; font-weight:700; font-size:2rem; }}
 .value-neg {{ color:{BRAND_GREEN}; font-weight:700; font-size:2rem; }}
 .label-small {{ color:#6b7280; text-transform:uppercase; letter-spacing:.04em; font-size:.9rem; }}
 </style>
 """, unsafe_allow_html=True)
+
+# ---------------- Fonctions ----------------
+def euro(x: float) -> str:
+    """Format 1 234 567,89"""
+    return f"{x:,.2f}".replace(",", " ").replace(".", ",")
+
+def valeur(label: str, val: float):
+    """Affichage uniforme"""
+    st.write(label)
+    st.markdown(f"<div class='big-val'>{euro(val)}</div>", unsafe_allow_html=True)
 
 # ---------------- Titre ----------------
 st.markdown("""
@@ -53,11 +62,6 @@ st.markdown("""
   <h1>Simulateur des contributions à la SAS Gîtes de France</h1>
 </div>
 """, unsafe_allow_html=True)
-
-# ---------------- Utilitaires ----------------
-def euro(x: float) -> str:
-    """1 234 567,89 (espaces + virgule)"""
-    return f"{x:,.2f}".replace(",", " ").replace(".", ",")
 
 # ---------------- Entrées ----------------
 st.sidebar.header("✍️ Remplissez")
@@ -67,19 +71,16 @@ C = st.sidebar.number_input("TOTAL des Loyers propriétaires (€)", min_value=0
 F = st.sidebar.number_input("Votre contribution volontaire à la campagne de marque (€)", min_value=0, value=15_000, step=100, format="%d")
 
 # ---------------- Calculs ----------------
-# Modèle actuel
-E = (A * 20) + (B * 30)      # forfaitaires
-Fv = float(F)                # campagne (modèle actuel)
-G = float(C) * 0.0084        # 0,84 %
-H = E + Fv + G               # total
+E = (A * 20) + (B * 30)
+Fv = float(F)
+G = float(C) * 0.0084
+H = E + Fv + G
 
-# Proposition 2026
 J = (A * 20) + (B * 30)
 K = 0.0
-L = float(C) * 0.0114        # 1,14 %
+L = float(C) * 0.0114
 M = J + K + L
 
-# Différences
 dE, dF, dG = (J - E), (K - Fv), (L - G)
 dH = M - H
 
@@ -89,41 +90,27 @@ col1, col2, col3 = st.columns(3)
 with col1:
     st.markdown('<span class="pill pill-green">Modèle actuel</span>', unsafe_allow_html=True)
     st.write("")
-    st.metric("Contributions forfaitaires", euro(E))
-
-    # Campagne (pas d'(inclus) ici) — label markdown + valeur compacte
-    st.write("Contribution à la campagne de Marque")
-    st.markdown(f"<div class='big-val'>{euro(Fv)}</div>", unsafe_allow_html=True)
-
-    # Loyers avec taux vert + valeur juste dessous
-    st.markdown('Contribution sur les loyers <span class="accent">0,84&nbsp;%</span>', unsafe_allow_html=True)
-    st.markdown(f"<div class='big-val'>{euro(G)}</div>", unsafe_allow_html=True)
-
+    valeur("Contributions forfaitaires", E)
+    valeur("Contribution à la campagne de Marque", Fv)
+    valeur('Contribution sur les loyers <span class="accent">0,84&nbsp;%</span>', G)
     st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
-    st.metric("TOTAL", euro(H))
+    valeur("TOTAL", H)
 
 with col2:
     st.markdown('<span class="pill pill-green">Proposition de modèle 2026</span>', unsafe_allow_html=True)
     st.write("")
-    st.metric("Contributions forfaitaires", euro(J))
-
-    # (inclus) vert + gras, sans trou dessous
-    st.markdown('Contribution à la campagne de Marque <span class="accent">(inclus)</span>', unsafe_allow_html=True)
-    st.markdown(f"<div class='big-val'>{euro(K)}</div>", unsafe_allow_html=True)
-
-    st.markdown('Contribution sur les loyers <span class="accent">1,14&nbsp;%</span>', unsafe_allow_html=True)
-    st.markdown(f"<div class='big-val'>{euro(L)}</div>", unsafe_allow_html=True)
-
+    valeur("Contributions forfaitaires", J)
+    valeur('Contribution à la campagne de Marque <span class="accent">(inclus)</span>', K)
+    valeur('Contribution sur les loyers <span class="accent">1,14&nbsp;%</span>', L)
     st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
-    st.metric("TOTAL", euro(M))
+    valeur("TOTAL", M)
 
 with col3:
     st.markdown('<span class="pill pill-outline">Différence (2026 – actuel)</span>', unsafe_allow_html=True)
     st.write("")
-    st.metric("Écart contributions forfaitaires", euro(dE))
-    st.metric("Écart contribution à la campagne", euro(dF))
-    st.metric("Écart contribution loyers", euro(dG))
-
+    valeur("Écart contributions forfaitaires", dE)
+    valeur("Écart contribution à la campagne", dF)
+    valeur("Écart contribution loyers", dG)
     st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
     if dH >= 0:
         st.markdown(f'<div class="label-small">ÉCART TOTAL</div><div class="value-pos">{euro(dH)}</div>', unsafe_allow_html=True)
