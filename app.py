@@ -15,19 +15,22 @@ section[data-testid="stSidebar"] { background:#4bab77 !important; }
 section[data-testid="stSidebar"] * { color:#fff !important; }
 
 /* Cards */
-.block-container .card {
-    border-radius: 14px;
-    padding: 18px 20px;
-    box-shadow: 0 4px 12px rgba(0,0,0,.1);
-    margin-bottom: 20px;
+.card {
+  border-radius: 14px;
+  padding: 18px 20px;
+  box-shadow: 0 6px 18px rgba(0,0,0,.08);
+  margin-bottom: 20px;
 }
 .card h3 {
-    margin-top: 0;
-    font-weight: 700;
+  margin-top: 0;
+  font-weight: 700;
 }
-.actual { background: #eef7ff; }   /* bleu très clair */
-.future { background: #eefcf0; }   /* vert très clair */
-.diff   { background: #fff3e8; }   /* orange très clair */
+.card hr { border: none; border-top:1px solid rgba(0,0,0,.08); margin:14px 0; }
+
+/* Couleurs */
+.card.actual { background: #eef7ff; }   /* bleu très clair */
+.card.future { background: #eefcf0; }   /* vert très clair */
+.card.diff   { background: #fff3e8; }   /* orange très clair */
 </style>
 """, unsafe_allow_html=True)
 
@@ -39,11 +42,13 @@ LOGO_CANDIDATES = [
 ]
 logo_path = next((p for p in LOGO_CANDIDATES if p.exists()), None)
 
-col_logo, col_title = st.columns([1,4])
-with col_logo:
-    if logo_path:
+if logo_path:
+    col_logo, col_title = st.columns([1,4])
+    with col_logo:
         st.image(str(logo_path), width=90)
-with col_title:
+    with col_title:
+        st.markdown("# 🏡 Simulateur des contributions à la SAS Gîtes de France")
+else:
     st.markdown("# 🏡 Simulateur des contributions à la SAS Gîtes de France")
 
 # ---------------- Entrées ----------------
@@ -82,9 +87,9 @@ with col1:
     st.metric("Contributions forfaitaires", euro(E))
     st.metric("Contribution volontaire à la campagne de Marque (inclus)", euro(Fv))
     st.metric("Contribution sur les loyers 0,84%", euro(G))
-    st.markdown("---")
+    st.markdown("<hr/>", unsafe_allow_html=True)
     st.metric("TOTAL", euro(H))
-    st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)
 
 with col2:
     st.markdown('<div class="card future">', unsafe_allow_html=True)
@@ -92,9 +97,9 @@ with col2:
     st.metric("Contributions forfaitaires", euro(J))
     st.metric("Contribution volontaire à la campagne de Marque (inclus)", euro(K))
     st.metric("Contribution sur les loyers 1,14%", euro(L))
-    st.markdown("---")
+    st.markdown("<hr/>", unsafe_allow_html=True)
     st.metric("TOTAL", euro(M))
-    st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)
 
 with col3:
     st.markdown('<div class="card diff">', unsafe_allow_html=True)
@@ -102,6 +107,6 @@ with col3:
     st.metric("Δ Contributions forfaitaires", euro(dE))
     st.metric("Δ Contribution volontaire (inclus)", euro(dF))
     st.metric("Δ Contribution loyers", euro(dG))
-    st.markdown("---")
+    st.markdown("<hr/>", unsafe_allow_html=True)
     st.metric("Δ TOTAL", euro(dH))
-    st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)
