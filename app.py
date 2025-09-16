@@ -46,14 +46,14 @@ section[data-testid="stSidebar"] input {{ color:#111827 !important; background:#
 </style>
 """, unsafe_allow_html=True)
 
-# ---------------- Fonctions ----------------
+# ---------------- Utilitaires ----------------
 def euro(x: float) -> str:
     """Format 1 234 567,89"""
     return f"{x:,.2f}".replace(",", " ").replace(".", ",")
 
-def valeur(label: str, val: float):
-    """Affichage uniforme"""
-    st.write(label)
+def valeur(label_html: str, val: float):
+    """Libellé (HTML autorisé) + valeur uniforme."""
+    st.markdown(label_html, unsafe_allow_html=True)                     # <= ici le HTML est rendu
     st.markdown(f"<div class='big-val'>{euro(val)}</div>", unsafe_allow_html=True)
 
 # ---------------- Titre ----------------
@@ -71,14 +71,14 @@ C = st.sidebar.number_input("TOTAL des Loyers propriétaires (€)", min_value=0
 F = st.sidebar.number_input("Votre contribution volontaire à la campagne de marque (€)", min_value=0, value=15_000, step=100, format="%d")
 
 # ---------------- Calculs ----------------
-E = (A * 20) + (B * 30)
-Fv = float(F)
-G = float(C) * 0.0084
+E = (A * 20) + (B * 30)          # forfaitaires actuel
+Fv = float(F)                     # campagne actuel
+G = float(C) * 0.0084             # 0,84 %
 H = E + Fv + G
 
-J = (A * 20) + (B * 30)
-K = 0.0
-L = float(C) * 0.0114
+J = (A * 20) + (B * 30)          # forfaitaires 2026
+K = 0.0                           # campagne 2026 (inclus)
+L = float(C) * 0.0114             # 1,14 %
 M = J + K + L
 
 dE, dF, dG = (J - E), (K - Fv), (L - G)
@@ -112,7 +112,8 @@ with col3:
     valeur("Écart contribution à la campagne", dF)
     valeur("Écart contribution loyers", dG)
     st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
-    if dH >= 0:
-        st.markdown(f'<div class="label-small">ÉCART TOTAL</div><div class="value-pos">{euro(dH)}</div>', unsafe_allow_html=True)
-    else:
-        st.markdown(f'<div class="label-small">ÉCART TOTAL</div><div class="value-neg">{euro(dH)}</div>', unsafe_allow_html=True)
+    st.markdown('<div class="label-small">ÉCART TOTAL</div>', unsafe_allow_html=True)
+    st.markdown(
+        f"<div class='{'value-pos' if dH >= 0 else 'value-neg'}'>{euro(dH)}</div>",
+        unsafe_allow_html=True
+    )
