@@ -1,0 +1,31 @@
+{
+  "inputs": [
+    {
+      "label": "Exemple: Chiffre d'affaires",
+      "cell": "B3",
+      "type": "number",
+      "min": 0,
+      "max": 1000000,
+      "step": 1000,
+      "default": 50000,
+      "sheet": "Feuil1"
+    },
+    {
+      "label": "Exemple: Taux TVA",
+      "cell": "B4",
+      "type": "number",
+      "min": 0,
+      "max": 1,
+      "step": 0.01,
+      "default": 0.2,
+      "sheet": "Feuil1"
+    }
+  ],
+  "outputs": [
+    {
+      "label": "Exemple: Résultat net",
+      "cell": "E10",
+      "sheet": "Feuil1"
+    }
+  ]
+}
