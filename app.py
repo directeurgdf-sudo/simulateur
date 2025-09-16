@@ -1,148 +1,122 @@
 import streamlit as st
-import re
+import pandas as pd
 
-# ---------------- Config ----------------
-st.set_page_config(page_title="Simulateur SAS", page_icon="🏡", layout="wide")
+# --- CONFIG PAGE ---
+st.set_page_config(page_title="Simulateur SAS Gîtes de France", layout="wide")
 
-# ---------------- Styles ----------------
-BRAND_GREEN = "#4bab77"
-
-st.markdown(f"""
+# --- CSS STYLE ---
+st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Raleway:wght@400;600;700&display=swap');
-* {{ font-family: 'Raleway', sans-serif; }}
+/* Police générale */
+html, body, [class*="css"] {
+    font-family: 'Raleway', sans-serif;
+}
 
-.header-wrap {{
-  margin-top:-40px;
-  margin-bottom:40px;
-}}
+/* Sidebar */
+section[data-testid="stSidebar"] {
+    background-color: #4bab77;
+}
+section[data-testid="stSidebar"] label {
+    color: white !important;
+    font-weight: 500;
+}
+section[data-testid="stSidebar"] input {
+    color: black !important;
+}
 
-section[data-testid="stSidebar"] {{ background:{BRAND_GREEN} !important; }}
-section[data-testid="stSidebar"] label {{ color:#fff !important; }}
+/* Titre principal */
+h1 {
+    margin-top: -20px;   /* rapproche du haut */
+    margin-bottom: 30px; /* espace avec les modèles */
+}
 
-section[data-testid="stSidebar"] input[type="text"],
-section[data-testid="stSidebar"] input[type="number"],
-section[data-testid="stSidebar"] .stNumberInput input {{
-  color:#1f2937 !important;
-  background:#ffffff !important;
-  border-radius:10px;
-}}
+/* Pills */
+.pill {
+    display:inline-block;
+    padding:6px 18px;
+    border-radius:20px;
+    font-weight:600;
+    margin-bottom:20px;
+}
+.pill-green {background:#4bab77; color:white;}
+.pill-outline {border:2px solid #4bab77; color:#111827;}
 
-.pill {{
-  display:inline-block; background:{BRAND_GREEN}; color:#fff;
-  padding:10px 14px; border-radius:20px;
-  font-weight:700; font-size:1.05rem;
-}}
-.pill-neutral {{
-  display:inline-block; background:#ffffff; color:#111827;
-  border:2px solid {BRAND_GREEN};
-  padding:10px 14px; border-radius:20px;
-  font-weight:700; font-size:1.05rem;
-}}
+/* Valeurs uniformes */
+.big-val {
+    font-size:1.6rem;        /* taille homogène */
+    line-height:1.3;
+    color:#111827;
+    margin:2px 0 14px;
+}
 
-.value-pos {{ color:#e03a3a; font-weight:700; font-size:2rem; }}
-.value-neg {{ color:{BRAND_GREEN}; font-weight:700; font-size:2rem; }}
-.label-small {{ color:#6b7280; text-transform:uppercase; letter-spacing:.04em; font-size:.9rem; }}
-.hr {{ border-top:1px solid #e5e7eb; margin:16px 0; }}
-
-/* Accents verts gras */
-.accent {{ color:{BRAND_GREEN}; font-weight:800; }}
-
-/* Valeur compacte (remplace st.metric(label="") pour éviter le vide) */
-.big-val {{ font-weight:700; font-size:2rem; line-height:1.15; color:#111827; margin:2px 0 14px; }}
+/* Accent vert pour les taux et "inclus" */
+.accent {
+    color:#4bab77;
+    font-weight:600;
+}
 </style>
 """, unsafe_allow_html=True)
 
-# ---------------- Titre ----------------
-st.markdown("""
-<div class="header-wrap">
-  <h1>Simulateur des contributions à la SAS Gîtes de France</h1>
-</div>
-""", unsafe_allow_html=True)
+# --- TITRE ---
+st.title("Simulateur des contributions à la SAS Gîtes de France")
 
-# ---------------- Utilitaires ----------------
-def euro(x: float) -> str:
-    return f"{x:,.2f}".replace(",", " ").replace(".", ",")
+# --- ENTRÉES ---
+st.sidebar.markdown("### 🍏 Remplissez")
 
-def thousands(n: int) -> str:
-    return f"{n:,}".replace(",", " ")
+nb_sr = st.sidebar.number_input("Votre parc d'annonces en SR (exclusivités)", min_value=0, value=650, step=1, format="%d")
+nb_rp = st.sidebar.number_input("Votre parc d'annonces en RP/PP (partagés)", min_value=0, value=300, step=1, format="%d")
+loyers = st.sidebar.number_input("TOTAL des Loyers propriétaires (€)", min_value=0, value=4000000, step=1000, format="%d")
+volontaire = st.sidebar.number_input("Votre contribution volontaire à la campagne de marque (€)", min_value=0, value=15000, step=100, format="%d")
 
-def parse_int(txt: str, fallback: int) -> int:
-    digits = re.sub(r"[^\d]", "", str(txt or ""))
-    return int(digits) if digits else fallback
+# --- CALCULS ---
+actuel_forfait = 22000
+actuel_volontaire = volontaire
+actuel_loyers = loyers * 0.0084
+actuel_total = actuel_forfait + actuel_volontaire + actuel_loyers
 
-def sidebar_number_with_grouping(label: str, default: int) -> int:
-    shown = thousands(default)
-    entered = st.sidebar.text_input(label, value=shown)
-    return parse_int(entered, default)
+mod2026_forfait = 22000
+mod2026_volontaire = 0
+mod2026_loyers = loyers * 0.0114
+mod2026_total = mod2026_forfait + mod2026_volontaire + mod2026_loyers
 
-# ---------------- Entrées ----------------
-st.sidebar.header("✍️ Remplissez")
-A = sidebar_number_with_grouping("Votre parc d'annonces en SR (exclusivités)", 650)
-B = sidebar_number_with_grouping("Votre parc d'annonces en RP/PP (partagés)", 300)
-C = sidebar_number_with_grouping("TOTAL des Loyers propriétaires (€)", 4_000_000)
-F = sidebar_number_with_grouping("Votre contribution volontaire à la campagne de marque (€)", 15_000)
+diff_forfait = mod2026_forfait - actuel_forfait
+diff_volontaire = mod2026_volontaire - actuel_volontaire
+diff_loyers = mod2026_loyers - actuel_loyers
+diff_total = mod2026_total - actuel_total
 
-# ---------------- Calculs ----------------
-# Modèle actuel
-E = (A * 20) + (B * 30)
-Fv = float(F)
-G = float(C) * 0.0084      # 0,84 %
-H = E + Fv + G
-
-# Proposition de modèle 2026
-J = (A * 20) + (B * 30)
-K = 0.0
-L = float(C) * 0.0114      # 1,14 %
-M = J + K + L
-
-# Différence
-O = M - H
-dE, dF, dG, dH = (J - E), (K - Fv), (L - G), O
-
-# ---------------- Affichage ----------------
+# --- AFFICHAGE ---
 col1, col2, col3 = st.columns(3)
 
 with col1:
-    st.markdown('<span class="pill">Modèle actuel</span>', unsafe_allow_html=True)
-    st.write("")
-    st.metric("Contributions forfaitaires", euro(E))
-
-    # Contribution campagne (libellé normal + valeur compacte)
-    st.markdown("Contribution à la campagne de Marque")
-    st.markdown(f"<div class='big-val'>{euro(Fv)}</div>", unsafe_allow_html=True)
-
-    # Loyers : taux en vert + gras, valeur en dessous
-    st.markdown('Contribution sur les loyers <span class="accent">0,84&nbsp;%</span>', unsafe_allow_html=True)
-    st.markdown(f"<div class='big-val'>{euro(G)}</div>", unsafe_allow_html=True)
-
-    st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
-    st.metric("TOTAL", euro(H))
+    st.markdown("<div class='pill pill-green'>Modèle actuel</div>", unsafe_allow_html=True)
+    st.write("Contributions forfaitaires")
+    st.markdown(f"<div class='big-val'>{actuel_forfait:,.0f}</div>", unsafe_allow_html=True)
+    st.write("Contribution à la campagne de Marque")
+    st.markdown(f"<div class='big-val'>{actuel_volontaire:,.0f}</div>", unsafe_allow_html=True)
+    st.write(f"Contribution sur les loyers <span class='accent'>0,84 %</span>", unsafe_allow_html=True)
+    st.markdown(f"<div class='big-val'>{actuel_loyers:,.0f}</div>", unsafe_allow_html=True)
+    st.write("TOTAL")
+    st.markdown(f"<div class='big-val'>{actuel_total:,.0f}</div>", unsafe_allow_html=True)
 
 with col2:
-    st.markdown('<span class="pill">Proposition de modèle 2026</span>', unsafe_allow_html=True)
-    st.write("")
-    st.metric("Contributions forfaitaires", euro(J))
-
-    # "(inclus)" en vert + gras, valeur compacte en dessous (pas de vide)
-    st.markdown('Contribution à la campagne de Marque <span class="accent">(inclus)</span>', unsafe_allow_html=True)
-    st.markdown(f"<div class='big-val'>{euro(K)}</div>", unsafe_allow_html=True)
-
-    st.markdown('Contribution sur les loyers <span class="accent">1,14&nbsp;%</span>', unsafe_allow_html=True)
-    st.markdown(f"<div class='big-val'>{euro(L)}</div>", unsafe_allow_html=True)
-
-    st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
-    st.metric("TOTAL", euro(M))
+    st.markdown("<div class='pill pill-green'>Proposition de modèle 2026</div>", unsafe_allow_html=True)
+    st.write("Contributions forfaitaires")
+    st.markdown(f"<div class='big-val'>{mod2026_forfait:,.0f}</div>", unsafe_allow_html=True)
+    st.write("Contribution à la campagne de Marque <span class='accent'>(inclus)</span>", unsafe_allow_html=True)
+    st.markdown(f"<div class='big-val'>{mod2026_volontaire:,.0f}</div>", unsafe_allow_html=True)
+    st.write(f"Contribution sur les loyers <span class='accent'>1,14 %</span>", unsafe_allow_html=True)
+    st.markdown(f"<div class='big-val'>{mod2026_loyers:,.0f}</div>", unsafe_allow_html=True)
+    st.write("TOTAL")
+    st.markdown(f"<div class='big-val'>{mod2026_total:,.0f}</div>", unsafe_allow_html=True)
 
 with col3:
-    st.markdown('<span class="pill-neutral">Différence (2026 – actuel)</span>', unsafe_allow_html=True)
-    st.write("")
-    st.metric("Écart contributions forfaitaires", euro(dE))
-    st.metric("Écart contribution à la campagne", euro(dF))
-    st.metric("Écart contribution loyers", euro(dG))
-    st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
-
-    if dH >= 0:
-        st.markdown(f'<div class="label-small">ÉCART TOTAL</div><div class="value-pos">{euro(dH)}</div>', unsafe_allow_html=True)
-    else:
-        st.markdown(f'<div class="label-small">ÉCART TOTAL</div><div class="value-neg">{euro(dH)}</div>', unsafe_allow_html=True)
+    st.markdown("<div class='pill pill-outline'>Différence (2026 – actuel)</div>", unsafe_allow_html=True)
+    st.write("Écart contributions forfaitaires")
+    st.markdown(f"<div class='big-val'>{diff_forfait:,.0f}</div>", unsafe_allow_html=True)
+    st.write("Écart contribution à la campagne")
+    st.markdown(f"<div class='big-val'>{diff_volontaire:,.0f}</div>", unsafe_allow_html=True)
+    st.write("Écart contribution loyers")
+    st.markdown(f"<div class='big-val'>{diff_loyers:,.0f}</div>", unsafe_allow_html=True)
+    st.write("ÉCART TOTAL")
+    couleur = "#d33" if diff_total > 0 else "#4bab77"
+    st.markdown(f"<div class='big-val' style='color:{couleur}'>{diff_total:,.0f}</div>", unsafe_allow_html=True)
