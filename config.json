@@ -14,10 +14,10 @@
       "label": "Exemple: Taux TVA",
       "cell": "B4",
       "type": "number",
-      "min": 0,
-      "max": 1,
+      "min": 0.0,
+      "max": 1.0,
       "step": 0.01,
-      "default": 0.2,
+      "default": 0.20,
       "sheet": "Feuil1"
     }
   ],
