@@ -22,12 +22,12 @@ with col_logo:
 with col_title:
     st.markdown("# 🏡 Simulateur des contributions à la SAS Gîtes de France")
 
-# ---- Entrées (✍️ Remplissez) ----
+# ---------- Entrées (✍️ Remplissez) ----------
 st.sidebar.header("✍️ Remplissez")
 A = st.sidebar.number_input("Votre parc d'annonces en SR (exclusivités)", min_value=0.0, step=1.0, value=674.0)
 B = st.sidebar.number_input("Votre parc d'annonces en RP/PP (partagés)",   min_value=0.0, step=1.0, value=567.0)
 C = st.sidebar.number_input("TOTAL des Loyers propriétaires (€)",           min_value=0.0, step=1000.0, value=2_642_740.90, format="%.2f")
-F = st.sidebar.number_input("Contribution volontaire à la campagne de Marque (inclus) (€)", min_value=0.0, step=100.0, value=10_000.0, format="%.2f")
+F = st.sidebar.number_input("Votre contribution volontaire à la campagne de marque (€)", min_value=0.0, step=100.0, value=10_000.0, format="%.2f")
 
 def fmt(x: float) -> str:
     return f"{x:,.2f}".replace(",", " ").replace(".", ",")
