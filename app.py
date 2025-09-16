@@ -1,38 +1,63 @@
 import streamlit as st
 
+# ---------- Configuration ----------
 st.set_page_config(page_title="Simulateur SAS", page_icon="🏡", layout="wide")
 
-# ---------- Titre ----------
-st.markdown("# 🏡 Simulateur des contributions à la SAS Gîtes de France")
+# ---------- Style global : police Raleway + sidebar verte ----------
+st.markdown(
+    """
+    <style>
+    * {
+        font-family: 'Raleway', sans-serif;
+    }
+
+    /* Sidebar */
+    section[data-testid="stSidebar"] {
+        background-color: #4bab77 !important;
+    }
+    section[data-testid="stSidebar"] * {
+        color: white !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
+# ---------- Logo + Titre ----------
+col_logo, col_title = st.columns([1,4])
+with col_logo:
+    st.image("05_Logo_GITES DE FRANCE_100x100mm_3 Couleurs_RVB.png", width=100)
+with col_title:
+    st.markdown("# 🏡 Simulateur des contributions à la SAS Gîtes de France")
 
 # ---------- Entrées ----------
 st.sidebar.header("✍️ Remplissez")
-A = st.sidebar.number_input("NB GITES SR", min_value=0.0, step=1.0, value=674.0)
-B = st.sidebar.number_input("NB GITES RP/PP", min_value=0.0, step=1.0, value=567.0)
+A = st.sidebar.number_input("Votre parc d'annonces en SR (exclusivités)", min_value=0.0, step=1.0, value=674.0)
+B = st.sidebar.number_input("Votre parc d'annonces en RP/PP (partagés)", min_value=0.0, step=1.0, value=567.0)
 C = st.sidebar.number_input("TOTAL des Loyers propriétaires (€)", min_value=0.0, step=1000.0, value=2_642_740.90, format="%.2f")
-F = st.sidebar.number_input("Contribution volontaire à la campagne de Marque (€)", min_value=0.0, step=100.0, value=10_000.0, format="%.2f")
+F = st.sidebar.number_input("Contribution volontaire à la campagne de Marque (inclus) (€)", min_value=0.0, step=100.0, value=10_000.0, format="%.2f")
 
 def fmt(val: float) -> str:
     return f"{val:,.2f}".replace(",", " ").replace(".", ",")
 
-# ---------- Calculs modèle ACTUEL (E,F,G,H) ----------
-E = (A * 20) + (B * 30)         # contributions forfaitaires
-Fv = F                           # contribution volontaire (paramètre, inclus)
-G = C * 0.0084                   # contribution sur loyers 0,84%
-H = E + Fv + G                   # total actuel
+# ---------- Calculs modèle ACTUEL ----------
+E = (A * 20) + (B * 30)  # contributions forfaitaires
+Fv = F
+G = C * 0.0084
+H = E + Fv + G
 
-# ---------- Calculs modèle 2026 (J,K,L,M) ----------
-J = (A * 20) + (B * 30)         # contributions forfaitaires
-K = 0.0                          # contribution volontaire (inclus) → valeur 0 dans ton fichier
-L = C * 0.0114                   # contribution sur loyers 1,14%
-M = J + K + L                    # total 2026
+# ---------- Calculs modèle 2026 ----------
+J = (A * 20) + (B * 30)
+K = 0.0
+L = C * 0.0114
+M = J + K + L
 
 # ---------- Différence ----------
-O = M - H                        # 2026 - actuel
+O = M - H
 
 st.divider()
 
-# ---------- Affichage : 3 blocs ----------
+# ---------- Résultats ----------
 col_a, col_b, col_c = st.columns(3)
 
 with col_a:
@@ -55,5 +80,3 @@ with col_c:
     st.metric("Δ Contribution volontaire (inclus)", fmt(K - Fv))
     st.metric("Δ Contribution loyers", fmt(L - G))
     st.metric("Δ TOTAL", fmt(O))
-
-st.caption("Les formules reproduisent celles de la ligne 4 de ton fichier Excel. Le libellé “(inclus)” est conservé pour la contribution volontaire.")
