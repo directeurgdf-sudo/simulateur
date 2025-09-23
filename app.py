@@ -46,9 +46,9 @@ section[data-testid="stSidebar"] input {{
 /* Séparateur */
 .hr {{ border-top:1px solid #e5e7eb; margin:16px 0; }}
 
-/* Écart total (hérite désormais la taille de .big-val pour alignement parfait) */
+/* Écart total : couleur uniquement (taille héritée de .big-val) */
 .value-pos {{ color:{BRAND_GREEN}; font-weight:700; }}  /* utilisé pour NEGATIF */
-.value-neg {{ color:#859592; font-weight:700; }}       /* utilisé pour POSITIF (couleur inchangée de ta V) */
+.value-neg {{ color:#e03a3a; font-weight:700; }}       /* utilisé pour POSITIF */
 .label-small {{ color:#6b7280; text-transform:uppercase; letter-spacing:.04em; font-size:.9rem; }}
 
 /* Notes de bas de page */
@@ -126,6 +126,7 @@ dE, dF, dG = (J - E), (K - Fv), (L - G)
 dH = M - H
 
 # ---------------- Affichage ----------------
+# 1) Ligne "contenus" (hors TOTAL)
 col1, col2, col3 = st.columns(3)
 
 with col1:
@@ -135,7 +136,6 @@ with col1:
     valeur("Contribution volontaire 2025", Fv)
     valeur('Contribution sur les loyers <span class="accent">0,84&nbsp;%</span>', G)
     st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
-    valeur("TOTAL", H)
 
 with col2:
     st.markdown('<span class="pill pill-green">Proposition de modèle 2026</span>', unsafe_allow_html=True)
@@ -144,7 +144,6 @@ with col2:
     valeur('Contribution à la campagne de Marque <span class="accent">(inclus)</span>', K)
     valeur('Contribution sur les loyers <span class="accent">1,15&nbsp;%</span><sup>(2)</sup>', L)
     st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
-    valeur("TOTAL", M)
 
 with col3:
     st.markdown('<span class="pill pill-outline">Différence (2026 – 2025)</span>', unsafe_allow_html=True)
@@ -153,16 +152,28 @@ with col3:
     valeur("Écart contribution à la campagne", dF)
     valeur("Écart contribution loyers", dG)
     st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
-    st.markdown('<div class="label-small">ÉCART TOTAL</div>', unsafe_allow_html=True)
 
-    # Affichage de l'écart DANS un conteneur .big-val, couleur portée par un <span>
+# 2) Ligne "TOTaux" — parfaitement alignée (même rangée)
+tot1, tot2, tot3 = st.columns(3)
+
+with tot1:
+    st.markdown('<div class="label-small">TOTAL</div>', unsafe_allow_html=True)
+    st.markdown(f"<div class='big-val'>{euro(H)}</div>", unsafe_allow_html=True)
+
+with tot2:
+    st.markdown('<div class="label-small">TOTAL</div>', unsafe_allow_html=True)
+    st.markdown(f"<div class='big-val'>{euro(M)}</div>", unsafe_allow_html=True)
+
+with tot3:
+    st.markdown('<div class="label-small">ÉCART TOTAL</div>', unsafe_allow_html=True)
     if dH < 0:
         prefix, klass = "–", "value-pos"   # vert
     else:
-        prefix, klass = "+", "value-neg"   # (ta couleur actuelle #859592)
+        prefix, klass = "+", "value-neg"   # rouge
+    # Écart dans le même gabarit .big-val, couleur via <span>
     st.markdown(f"<div class='big-val'><span class='{klass}'>{prefix} {euro(abs(dH))}</span></div>", unsafe_allow_html=True)
 
-# Notes (après les colonnes pour ne pas décaler les chiffres)
+# Notes (après)
 st.markdown(
     "<div class='footnotes'>"
     "<div><sup>(1)</sup> 20€/hébergement en SR, 30€/hébergement en RP/PP</div>"
