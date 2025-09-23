@@ -103,10 +103,10 @@ st.markdown("""
 
 # ---------------- Entrées ----------------
 st.sidebar.header("✍️ Remplissez")
-A = read_int_with_grouping("Votre parc d'annonces en SR (exclusivité)", 650, key="A")
+A = read_int_with_grouping("Votre parc d'annonces en SR (exclusivité)", 150, key="A")
 B = read_int_with_grouping("Votre parc d'annonces en RP/PP (partagés)", 300, key="B")
 C = read_int_with_grouping("Total des loyers propriétaires (€)", 4_000_000, key="C")
-F = read_int_with_grouping("Votre contribution volontaire à la campagne de marque 2025 (€)", 15_000, key="F")
+F = read_int_with_grouping("Votre contribution volontaire à la campagne de marque 2025 (€)", 12_400, key="F")
 
 # ---------------- Calculs ----------------
 # Modèle 2025
