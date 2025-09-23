@@ -46,9 +46,9 @@ section[data-testid="stSidebar"] input {{
 /* Séparateur */
 .hr {{ border-top:1px solid #e5e7eb; margin:16px 0; }}
 
-/* Écart total (classes conservées, mais sémantique inversée en V2) */
-.value-pos {{ color:{BRAND_GREEN}; font-weight:700; font-size:2rem; }} /* utilisé pour NEGATIF en V2 */
-.value-neg {{ color:#e03a3a; font-weight:700; font-size:2rem; }}       /* utilisé pour POSITIF en V2 */
+/* Écart total (classes conservées, mais sémantique inversée en V2/V3) */
+.value-pos {{ color:{BRAND_GREEN}; font-weight:700; font-size:2rem; }} /* utilisé pour NEGATIF */
+.value-neg {{ color:#e03a3a; font-weight:700; font-size:2rem; }}       /* utilisé pour POSITIF */
 .label-small {{ color:#6b7280; text-transform:uppercase; letter-spacing:.04em; font-size:.9rem; }}
 
 /* Notes de bas de page */
@@ -87,9 +87,9 @@ st.markdown("""
 
 # ---------------- Entrées ----------------
 st.sidebar.header("✍️ Remplissez")
-A = read_int_with_grouping("Votre parc d'annonces en SR (exclusivités)", 650)
+A = read_int_with_grouping("Votre parc d'annonces en SR (exclusivité)", 650)  # v4: exclusivité (sans s)
 B = read_int_with_grouping("Votre parc d'annonces en RP/PP (partagés)", 300)
-C = read_int_with_grouping("TOTAL des Loyers propriétaires (€)", 4_000_000)
+C = read_int_with_grouping("Total des loyers propriétaires (€)", 4_000_000)  # v4: 'Total' et 'loyers' en minuscule
 F = read_int_with_grouping("Votre contribution volontaire à la campagne de marque (€)", 15_000)
 
 # ---------------- Calculs ----------------
@@ -102,7 +102,7 @@ H = E + Fv + G              # total
 # Proposition 2026
 J = (A * 20) + (B * 30)     # mêmes forfaits
 K = 0.0                     # campagne incluse
-L = float(C) * 0.0114       # 1,14 %
+L = float(C) * 0.0115       # v4: 1,15 %
 M = J + K + L               # total
 
 # Différences (2026 – 2025)
@@ -115,9 +115,7 @@ col1, col2, col3 = st.columns(3)
 with col1:
     st.markdown('<span class="pill pill-green">Modèle 2025</span>', unsafe_allow_html=True)
     st.write("")
-    # Exposant (1) sans ajouter de ligne
     valeur("Contributions forfaitaires<sup>(1)</sup>", E)
-    # Libellé sur une seule ligne
     valeur("Contribution volontaire à la campagne de Marque", Fv)
     valeur('Contribution sur les loyers <span class="accent">0,84&nbsp;%</span>', G)
     st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
@@ -128,7 +126,7 @@ with col2:
     st.write("")
     valeur("Contributions forfaitaires<sup>(1)</sup>", J)
     valeur('Contribution à la campagne de Marque <span class="accent">(inclus)</span>', K)
-    valeur('Contribution sur les loyers <span class="accent">1,14&nbsp;%</span><sup>(2)</sup>', L)
+    valeur('Contribution sur les loyers <span class="accent">1,15&nbsp;%</span><sup>(2)</sup>', L)  # v4: 1,15 %
     st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
     valeur("TOTAL", M)
 
@@ -140,14 +138,14 @@ with col3:
     valeur("Écart contribution loyers", dG)
     st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
     st.markdown('<div class="label-small">ÉCART TOTAL</div>', unsafe_allow_html=True)
-    # V2/V3 : si NEGATIF -> vert et préfixe "–" ; si POSITIF -> rouge et préfixe "+"
+    # Si NEGATIF -> vert et préfixe "–" ; si POSITIF -> rouge et préfixe "+"
     if dH < 0:
         prefix, klass = "–", "value-pos"   # vert
     else:
         prefix, klass = "+", "value-neg"   # rouge
     st.markdown(f"<div class='{klass}'>{prefix} {euro(abs(dH))}</div>", unsafe_allow_html=True)
 
-# Notes (affichées après les colonnes pour ne pas décaler les chiffres)
+# Notes (après les colonnes pour ne pas décaler les chiffres)
 st.markdown(
     "<div class='footnotes'>"
     "<div><sup>(1)</sup> 20€/hébergement en SR, 30€/hébergement en RP/PP</div>"
