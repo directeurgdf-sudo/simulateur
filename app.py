@@ -81,7 +81,7 @@ def valeur(label_html: str, val: float):
 # ---------------- Titre ----------------
 st.markdown("""
 <div class="header-wrap">
-  <h1>[TITRE] Simulateur départemental – Financement de la SAS Gîtes de France</h1>
+  <h1>Simulateur départemental – Financement de la SAS Gîtes de France</h1>
 </div>
 """, unsafe_allow_html=True)
 
@@ -115,9 +115,10 @@ col1, col2, col3 = st.columns(3)
 with col1:
     st.markdown('<span class="pill pill-green">Modèle 2025</span>', unsafe_allow_html=True)
     st.write("")
-    # Ajout (1) en exposant sans ligne supplémentaire
+    # Exposant (1) sans ajouter de ligne
     valeur("Contributions forfaitaires<sup>(1)</sup>", E)
-    valeur("Contribution volontaire<br>à la campagne de Marque", Fv)
+    # Libellé sur une seule ligne
+    valeur("Contribution volontaire à la campagne de Marque", Fv)
     valeur('Contribution sur les loyers <span class="accent">0,84&nbsp;%</span>', G)
     st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
     valeur("TOTAL", H)
@@ -125,10 +126,8 @@ with col1:
 with col2:
     st.markdown('<span class="pill pill-green">Proposition de modèle 2026</span>', unsafe_allow_html=True)
     st.write("")
-    # Ajout (1) en exposant sans ligne supplémentaire
     valeur("Contributions forfaitaires<sup>(1)</sup>", J)
     valeur('Contribution à la campagne de Marque <span class="accent">(inclus)</span>', K)
-    # Ajout (2) en exposant après 1,14 %
     valeur('Contribution sur les loyers <span class="accent">1,14&nbsp;%</span><sup>(2)</sup>', L)
     st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
     valeur("TOTAL", M)
@@ -141,18 +140,12 @@ with col3:
     valeur("Écart contribution loyers", dG)
     st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
     st.markdown('<div class="label-small">ÉCART TOTAL</div>', unsafe_allow_html=True)
-    # V2 : si NEGATIF -> vert et préfixe "–" ; si POSITIF -> rouge et préfixe "+"
+    # V2/V3 : si NEGATIF -> vert et préfixe "–" ; si POSITIF -> rouge et préfixe "+"
     if dH < 0:
         prefix, klass = "–", "value-pos"   # vert
     else:
         prefix, klass = "+", "value-neg"   # rouge
     st.markdown(f"<div class='{klass}'>{prefix} {euro(abs(dH))}</div>", unsafe_allow_html=True)
-    # Instructions en 2 lignes sous l'écart total
-    st.markdown(
-        "<div class='label-small'>Ajouter « – » devant si le résultat est négatif (vert)</div>"
-        "<div class='label-small'>Ajouter « + » devant si le résultat est positif (rouge)</div>",
-        unsafe_allow_html=True
-    )
 
 # Notes (affichées après les colonnes pour ne pas décaler les chiffres)
 st.markdown(
