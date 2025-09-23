@@ -3,7 +3,7 @@ import re
 
 # ---------------- Config ----------------
 st.set_page_config(
-    page_title="Simulateur SAS Gîtes de France",
+    page_title="Simulateur départemental – Financement de la SAS Gîtes de France",
     page_icon="🏡",
     layout="wide",
 )
@@ -47,8 +47,8 @@ section[data-testid="stSidebar"] input {{
 .hr {{ border-top:1px solid #e5e7eb; margin:16px 0; }}
 
 /* Écart total */
-.value-pos {{ color:#e03a3a; font-weight:700; font-size:2rem; }}
-.value-neg {{ color:{BRAND_GREEN}; font-weight:700; font-size:2rem; }}
+.value-pos {{ color:{BRAND_GREEN}; font-weight:700; font-size:2rem; }}
+.value-neg {{ color:#e03a3a; font-weight:700; font-size:2rem; }}
 .label-small {{ color:#6b7280; text-transform:uppercase; letter-spacing:.04em; font-size:.9rem; }}
 </style>
 """, unsafe_allow_html=True)
@@ -77,7 +77,7 @@ def valeur(label_html: str, val: float):
 # ---------------- Titre ----------------
 st.markdown("""
 <div class="header-wrap">
-  <h1>Simulateur des contributions à la SAS Gîtes de France</h1>
+  <h1>[TITRE] Simulateur départemental – Financement de la SAS Gîtes de France</h1>
 </div>
 """, unsafe_allow_html=True)
 
@@ -91,9 +91,9 @@ C = read_int_with_grouping("TOTAL des Loyers propriétaires (€)", 4_000_000)
 F = read_int_with_grouping("Votre contribution volontaire à la campagne de marque (€)", 15_000)
 
 # ---------------- Calculs ----------------
-# Modèle actuel
-E = (A * 20) + (B * 30)     # contributions forfaitaires
-Fv = float(F)               # contribution campagne (modèle actuel)
+# Modèle actuel (2025)
+E = (A * 20) + (B * 30)     # contributions forfaitaires (20€/SR, 30€/RP/PP)
+Fv = float(F)               # contribution campagne (modèle 2025)
 G = float(C) * 0.0084       # 0,84 %
 H = E + Fv + G              # total
 
@@ -103,7 +103,7 @@ K = 0.0                     # campagne incluse (0 en 2026)
 L = float(C) * 0.0114       # 1,14 %
 M = J + K + L               # total
 
-# Différences
+# Différences (2026 – 2025)
 dE, dF, dG = (J - E), (K - Fv), (L - G)
 dH = M - H
 
@@ -111,10 +111,14 @@ dH = M - H
 col1, col2, col3 = st.columns(3)
 
 with col1:
-    st.markdown('<span class="pill pill-green">Modèle actuel</span>', unsafe_allow_html=True)
+    # Libellé colonne conforme au PDF: "Modèle 2025"
+    st.markdown('<span class="pill pill-green">Modèle 2025</span>', unsafe_allow_html=True)
     st.write("")
-    valeur("Contributions forfaitaires", E)
-    valeur("Contribution à la campagne de Marque", Fv)
+    # Contributions forfaitaires + précision 20€/30€
+    valeur("Contributions forfaitaires<br><span class='label-small'>20€/hébergement en SR, 30€/hébergement en RP/PP</span>", E)
+    # "Contribution volontaire à la campagne de Marque"
+    valeur("Contribution volontaire<br>à la campagne de Marque", Fv)
+    # Taux 0,84 %
     valeur('Contribution sur les loyers <span class="accent">0,84&nbsp;%</span>', G)
     st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
     valeur("TOTAL", H)
@@ -129,14 +133,18 @@ with col2:
     valeur("TOTAL", M)
 
 with col3:
-    st.markdown('<span class="pill pill-outline">Différence (2026 – actuel)</span>', unsafe_allow_html=True)
+    # "Différence (2026 – 2025)"
+    st.markdown('<span class="pill pill-outline">Différence (2026 – 2025)</span>', unsafe_allow_html=True)
     st.write("")
     valeur("Écart contributions forfaitaires", dE)
     valeur("Écart contribution à la campagne", dF)
     valeur("Écart contribution loyers", dG)
     st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
     st.markdown('<div class="label-small">ÉCART TOTAL</div>', unsafe_allow_html=True)
+    prefix = "+" if dH >= 0 else "–"
     st.markdown(
-        f"<div class='{'value-pos' if dH >= 0 else 'value-neg'}'>{euro(dH)}</div>",
+        f"<div class='{'value-pos' if dH >= 0 else 'value-neg'}'>{prefix} {euro(dH)}</div>",
         unsafe_allow_html=True
     )
+    # Consigne sous l'écart total
+    st.markdown("<div class='label-small'>Mettre « + » si positif (vert) ou « – » si négatif (rouge)</div>", unsafe_allow_html=True)
