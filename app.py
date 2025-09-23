@@ -46,9 +46,9 @@ section[data-testid="stSidebar"] input {{
 /* Séparateur */
 .hr {{ border-top:1px solid #e5e7eb; margin:16px 0; }}
 
-/* Écart total (classes conservées, mais sémantique inversée en V2/V3) */
+/* Écart total (classes conservées, mais sémantique inversée) */
 .value-pos {{ color:{BRAND_GREEN}; font-weight:700; font-size:2rem; }} /* utilisé pour NEGATIF */
-.value-neg {{ color:#859592; font-weight:700; font-size:2rem; }}       /* utilisé pour POSITIF */
+.value-neg {{ color:#e03a3a; font-weight:700; font-size:2rem; }}       /* utilisé pour POSITIF */
 .label-small {{ color:#6b7280; text-transform:uppercase; letter-spacing:.04em; font-size:.9rem; }}
 
 /* Notes de bas de page */
@@ -66,12 +66,21 @@ def euro_int(n: int) -> str:
     """Format 1234567 -> '1 234 567' (pour affichage dans la sidebar)"""
     return f"{n:,}".replace(",", " ")
 
-def read_int_with_grouping(label: str, default: int) -> int:
-    """Text input qui affiche des milliers et parse un entier proprement."""
-    shown = euro_int(default)
-    raw = st.sidebar.text_input(label, value=shown)
+def read_int_with_grouping(label: str, default: int, key: str) -> int:
+    """
+    Text input qui conserve les séparateurs de milliers pendant la saisie.
+    - Affiche la valeur formatée
+    - Parse côté calcul (enlève tout sauf les chiffres)
+    """
+    if key not in st.session_state:
+        st.session_state[key] = euro_int(default)
+
+    raw = st.sidebar.text_input(label, value=st.session_state[key], key=key)
     digits = re.sub(r"[^\d]", "", raw or "")
-    return int(digits) if digits else default
+    val = int(digits) if digits else default
+    # Réécrit la valeur formatée pour conserver les espaces de milliers
+    st.session_state[key] = euro_int(val)
+    return val
 
 def valeur(label_html: str, val: float):
     """Libellé (HTML autorisé) + valeur uniforme."""
@@ -87,10 +96,10 @@ st.markdown("""
 
 # ---------------- Entrées ----------------
 st.sidebar.header("✍️ Remplissez")
-A = read_int_with_grouping("Votre parc d'annonces en SR (exclusivité)", 150)  # v4: exclusivité (sans s)
-B = read_int_with_grouping("Votre parc d'annonces en RP/PP (partagés)", 300)
-C = read_int_with_grouping("Total des loyers propriétaires (€)", 3_000_000)  # v4: 'Total' et 'loyers' en minuscule
-F = read_int_with_grouping("Votre contribution volontaire à la campagne de marque 2025 (€)", 9_500)
+A = read_int_with_grouping("Votre parc d'annonces en SR (exclusivité)", 650, key="A")
+B = read_int_with_grouping("Votre parc d'annonces en RP/PP (partagés)", 300, key="B")
+C = read_int_with_grouping("Total des loyers propriétaires (€)", 4_000_000, key="C")
+F = read_int_with_grouping("Votre contribution volontaire à la campagne de marque (€)", 15_000, key="F")
 
 # ---------------- Calculs ----------------
 # Modèle 2025
@@ -102,7 +111,7 @@ H = E + Fv + G              # total
 # Proposition 2026
 J = (A * 20) + (B * 30)     # mêmes forfaits
 K = 0.0                     # campagne incluse
-L = float(C) * 0.0115       # v4: 1,15 %
+L = float(C) * 0.0115       # 1,15 %
 M = J + K + L               # total
 
 # Différences (2026 – 2025)
@@ -116,7 +125,7 @@ with col1:
     st.markdown('<span class="pill pill-green">Modèle 2025</span>', unsafe_allow_html=True)
     st.write("")
     valeur("Contributions forfaitaires<sup>(1)</sup>", E)
-    valeur("Contribution volontaire 2025", Fv)
+    valeur("Contribution volontaire à la campagne de Marque", Fv)
     valeur('Contribution sur les loyers <span class="accent">0,84&nbsp;%</span>', G)
     st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
     valeur("TOTAL", H)
@@ -126,7 +135,7 @@ with col2:
     st.write("")
     valeur("Contributions forfaitaires<sup>(1)</sup>", J)
     valeur('Contribution à la campagne de Marque <span class="accent">(inclus)</span>', K)
-    valeur('Contribution sur les loyers <span class="accent">1,15&nbsp;%</span><sup>(2)</sup>', L)  # v4: 1,15 %
+    valeur('Contribution sur les loyers <span class="accent">1,15&nbsp;%</span><sup>(2)</sup>', L)
     st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
     valeur("TOTAL", M)
 
