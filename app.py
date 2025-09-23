@@ -3,7 +3,7 @@ import re
 
 # ---------------- Config ----------------
 st.set_page_config(
-    page_title="Simulateur départemental – Financement de la SAS Gîtes de France",
+    page_title="Simulateur départemental – Financement de la SAS Gîtes de France®",
     page_icon="🏡",
     layout="wide",
 )
