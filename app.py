@@ -90,7 +90,7 @@ st.sidebar.header("✍️ Remplissez")
 A = read_int_with_grouping("Votre parc d'annonces en SR (exclusivité)", 150)  # v4: exclusivité (sans s)
 B = read_int_with_grouping("Votre parc d'annonces en RP/PP (partagés)", 300)
 C = read_int_with_grouping("Total des loyers propriétaires (€)", 3_000_000)  # v4: 'Total' et 'loyers' en minuscule
-F = read_int_with_grouping("Votre contribution volontaire à la campagne de marque 2025 (€)", 15_000)
+F = read_int_with_grouping("Votre contribution volontaire à la campagne de marque 2025 (€)", 9_500)
 
 # ---------------- Calculs ----------------
 # Modèle 2025
