@@ -34,22 +34,26 @@ section[data-testid="stSidebar"] input {{
 .pill-green  {{ background:{BRAND_GREEN}; color:#fff; }}
 .pill-outline{{ background:#fff; color:#111827; border:2px solid {BRAND_GREEN}; }}
 
-/* Texte en vert (taux, inclus) */
+/* Accents */
 .accent {{ color:{BRAND_GREEN}; font-weight:800; }}
 
-/* Valeurs uniformes */
+/* Valeurs */
 .big-val {{
   font-size:1.6rem; line-height:1.3; color:#111827;
   margin:4px 0 14px; font-weight:500;
 }}
 
-/* Lignes de séparation */
+/* Séparateur */
 .hr {{ border-top:1px solid #e5e7eb; margin:16px 0; }}
 
-/* Écart total */
-.value-pos {{ color:{BRAND_GREEN}; font-weight:700; font-size:2rem; }}
-.value-neg {{ color:#e03a3a; font-weight:700; font-size:2rem; }}
+/* Écart total (classes conservées, mais sémantique inversée en V2) */
+.value-pos {{ color:{BRAND_GREEN}; font-weight:700; font-size:2rem; }} /* utilisé pour NEGATIF en V2 */
+.value-neg {{ color:#e03a3a; font-weight:700; font-size:2rem; }}       /* utilisé pour POSITIF en V2 */
 .label-small {{ color:#6b7280; text-transform:uppercase; letter-spacing:.04em; font-size:.9rem; }}
+
+/* Notes de bas de page */
+.footnotes {{ color:#6b7280; font-size:.9rem; margin-top:8px; }}
+.footnotes sup {{ margin-right:4px; }}
 </style>
 """, unsafe_allow_html=True)
 
@@ -83,23 +87,21 @@ st.markdown("""
 
 # ---------------- Entrées ----------------
 st.sidebar.header("✍️ Remplissez")
-
-# Entrées avec séparateurs de milliers dans la sidebar
 A = read_int_with_grouping("Votre parc d'annonces en SR (exclusivités)", 650)
 B = read_int_with_grouping("Votre parc d'annonces en RP/PP (partagés)", 300)
 C = read_int_with_grouping("TOTAL des Loyers propriétaires (€)", 4_000_000)
 F = read_int_with_grouping("Votre contribution volontaire à la campagne de marque (€)", 15_000)
 
 # ---------------- Calculs ----------------
-# Modèle actuel (2025)
-E = (A * 20) + (B * 30)     # contributions forfaitaires (20€/SR, 30€/RP/PP)
-Fv = float(F)               # contribution campagne (modèle 2025)
+# Modèle 2025
+E = (A * 20) + (B * 30)     # 20€/SR, 30€/RP/PP
+Fv = float(F)               # contribution volontaire campagne (2025)
 G = float(C) * 0.0084       # 0,84 %
 H = E + Fv + G              # total
 
 # Proposition 2026
-J = (A * 20) + (B * 30)     # contributions forfaitaires
-K = 0.0                     # campagne incluse (0 en 2026)
+J = (A * 20) + (B * 30)     # mêmes forfaits
+K = 0.0                     # campagne incluse
 L = float(C) * 0.0114       # 1,14 %
 M = J + K + L               # total
 
@@ -111,14 +113,11 @@ dH = M - H
 col1, col2, col3 = st.columns(3)
 
 with col1:
-    # Libellé colonne conforme au PDF: "Modèle 2025"
     st.markdown('<span class="pill pill-green">Modèle 2025</span>', unsafe_allow_html=True)
     st.write("")
-    # Contributions forfaitaires + précision 20€/30€
-    valeur("Contributions forfaitaires<br><span class='label-small'>20€/hébergement en SR, 30€/hébergement en RP/PP</span>", E)
-    # "Contribution volontaire à la campagne de Marque"
+    # Ajout (1) en exposant sans ligne supplémentaire
+    valeur("Contributions forfaitaires<sup>(1)</sup>", E)
     valeur("Contribution volontaire<br>à la campagne de Marque", Fv)
-    # Taux 0,84 %
     valeur('Contribution sur les loyers <span class="accent">0,84&nbsp;%</span>', G)
     st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
     valeur("TOTAL", H)
@@ -126,14 +125,15 @@ with col1:
 with col2:
     st.markdown('<span class="pill pill-green">Proposition de modèle 2026</span>', unsafe_allow_html=True)
     st.write("")
-    valeur("Contributions forfaitaires", J)
+    # Ajout (1) en exposant sans ligne supplémentaire
+    valeur("Contributions forfaitaires<sup>(1)</sup>", J)
     valeur('Contribution à la campagne de Marque <span class="accent">(inclus)</span>', K)
-    valeur('Contribution sur les loyers <span class="accent">1,14&nbsp;%</span>', L)
+    # Ajout (2) en exposant après 1,14 %
+    valeur('Contribution sur les loyers <span class="accent">1,14&nbsp;%</span><sup>(2)</sup>', L)
     st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
     valeur("TOTAL", M)
 
 with col3:
-    # "Différence (2026 – 2025)"
     st.markdown('<span class="pill pill-outline">Différence (2026 – 2025)</span>', unsafe_allow_html=True)
     st.write("")
     valeur("Écart contributions forfaitaires", dE)
@@ -141,10 +141,24 @@ with col3:
     valeur("Écart contribution loyers", dG)
     st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
     st.markdown('<div class="label-small">ÉCART TOTAL</div>', unsafe_allow_html=True)
-    prefix = "+" if dH >= 0 else "–"
+    # V2 : si NEGATIF -> vert et préfixe "–" ; si POSITIF -> rouge et préfixe "+"
+    if dH < 0:
+        prefix, klass = "–", "value-pos"   # vert
+    else:
+        prefix, klass = "+", "value-neg"   # rouge
+    st.markdown(f"<div class='{klass}'>{prefix} {euro(abs(dH))}</div>", unsafe_allow_html=True)
+    # Instructions en 2 lignes sous l'écart total
     st.markdown(
-        f"<div class='{'value-pos' if dH >= 0 else 'value-neg'}'>{prefix} {euro(dH)}</div>",
+        "<div class='label-small'>Ajouter « – » devant si le résultat est négatif (vert)</div>"
+        "<div class='label-small'>Ajouter « + » devant si le résultat est positif (rouge)</div>",
         unsafe_allow_html=True
     )
-    # Consigne sous l'écart total
-    st.markdown("<div class='label-small'>Mettre « + » si positif (vert) ou « – » si négatif (rouge)</div>", unsafe_allow_html=True)
+
+# Notes (affichées après les colonnes pour ne pas décaler les chiffres)
+st.markdown(
+    "<div class='footnotes'>"
+    "<div><sup>(1)</sup> 20€/hébergement en SR, 30€/hébergement en RP/PP</div>"
+    "<div><sup>(2)</sup> Augmentation du taux et suppression du plafonnement</div>"
+    "</div>",
+    unsafe_allow_html=True
+)
