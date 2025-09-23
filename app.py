@@ -48,7 +48,7 @@ section[data-testid="stSidebar"] input {{
 
 /* Écart total (classes conservées, mais sémantique inversée) */
 .value-pos {{ color:{BRAND_GREEN}; font-weight:700; font-size:2rem; }} /* utilisé pour NEGATIF */
-.value-neg {{ color:#e03a3a; font-weight:700; font-size:2rem; }}       /* utilisé pour POSITIF */
+.value-neg {{ color:#859592; font-weight:700; font-size:2rem; }}       /* utilisé pour POSITIF */
 .label-small {{ color:#6b7280; text-transform:uppercase; letter-spacing:.04em; font-size:.9rem; }}
 
 /* Notes de bas de page */
@@ -106,12 +106,12 @@ st.sidebar.header("✍️ Remplissez")
 A = read_int_with_grouping("Votre parc d'annonces en SR (exclusivité)", 650, key="A")
 B = read_int_with_grouping("Votre parc d'annonces en RP/PP (partagés)", 300, key="B")
 C = read_int_with_grouping("Total des loyers propriétaires (€)", 4_000_000, key="C")
-F = read_int_with_grouping("Votre contribution volontaire à la campagne de marque (€)", 15_000, key="F")
+F = read_int_with_grouping("Votre contribution volontaire à la campagne de marque 2025 (€)", 15_000, key="F")
 
 # ---------------- Calculs ----------------
 # Modèle 2025
 E = (A * 20) + (B * 30)     # 20€/SR, 30€/RP/PP
-Fv = float(F)               # contribution volontaire campagne (2025)
+Fv = float(F)               # contribution volontaire (2025)
 G = float(C) * 0.0084       # 0,84 %
 H = E + Fv + G              # total
 
