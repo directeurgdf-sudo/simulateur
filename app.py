@@ -68,19 +68,26 @@ def euro_int(n: int) -> str:
 
 def read_int_with_grouping(label: str, default: int, key: str) -> int:
     """
-    Text input qui conserve les séparateurs de milliers pendant la saisie.
-    - Affiche la valeur formatée
-    - Parse côté calcul (enlève tout sauf les chiffres)
+    Text input qui conserve les séparateurs de milliers pendant la saisie,
+    avec callback on_change (évite StreamlitAPIException).
     """
-    if key not in st.session_state:
+    # Valeur initiale
+    if key not in st.session_state or st.session_state[key] == "":
         st.session_state[key] = euro_int(default)
 
-    raw = st.sidebar.text_input(label, value=st.session_state[key], key=key)
-    digits = re.sub(r"[^\d]", "", raw or "")
-    val = int(digits) if digits else default
-    # Réécrit la valeur formatée pour conserver les espaces de milliers
-    st.session_state[key] = euro_int(val)
-    return val
+    # Callback qui reformate
+    def _on_change():
+        raw = st.session_state.get(key, "")
+        digits = re.sub(r"[^\d]", "", raw or "")
+        val = int(digits) if digits else 0
+        st.session_state[key] = euro_int(val)
+
+    # Widget
+    st.sidebar.text_input(label, key=key, value=st.session_state[key], on_change=_on_change)
+
+    # Valeur numérique pour calculs
+    digits = re.sub(r"[^\d]", "", st.session_state.get(key, ""))
+    return int(digits) if digits else default
 
 def valeur(label_html: str, val: float):
     """Libellé (HTML autorisé) + valeur uniforme."""
@@ -147,7 +154,6 @@ with col3:
     valeur("Écart contribution loyers", dG)
     st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
     st.markdown('<div class="label-small">ÉCART TOTAL</div>', unsafe_allow_html=True)
-    # Si NEGATIF -> vert et préfixe "–" ; si POSITIF -> rouge et préfixe "+"
     if dH < 0:
         prefix, klass = "–", "value-pos"   # vert
     else:
