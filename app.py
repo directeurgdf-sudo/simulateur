@@ -37,7 +37,7 @@ section[data-testid="stSidebar"] input {{
 /* Accents */
 .accent {{ color:{BRAND_GREEN}; font-weight:800; }}
 
-/* Valeurs */
+/* Valeurs (gabarit commun) */
 .big-val {{
   font-size:1.6rem; line-height:1.3; color:#111827;
   margin:4px 0 14px; font-weight:500;
@@ -46,9 +46,9 @@ section[data-testid="stSidebar"] input {{
 /* Séparateur */
 .hr {{ border-top:1px solid #e5e7eb; margin:16px 0; }}
 
-/* Écart total (classes conservées, mais sémantique inversée) */
-.value-pos {{ color:{BRAND_GREEN}; font-weight:700; font-size:2rem; }} /* utilisé pour NEGATIF */
-.value-neg {{ color:#859592; font-weight:700; font-size:2rem; }}       /* utilisé pour POSITIF */
+/* Écart total (hérite désormais la taille de .big-val pour alignement parfait) */
+.value-pos {{ color:{BRAND_GREEN}; font-weight:700; }}  /* utilisé pour NEGATIF */
+.value-neg {{ color:#859592; font-weight:700; }}       /* utilisé pour POSITIF (couleur inchangée de ta V) */
 .label-small {{ color:#6b7280; text-transform:uppercase; letter-spacing:.04em; font-size:.9rem; }}
 
 /* Notes de bas de page */
@@ -154,11 +154,13 @@ with col3:
     valeur("Écart contribution loyers", dG)
     st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
     st.markdown('<div class="label-small">ÉCART TOTAL</div>', unsafe_allow_html=True)
+
+    # Affichage de l'écart DANS un conteneur .big-val, couleur portée par un <span>
     if dH < 0:
         prefix, klass = "–", "value-pos"   # vert
     else:
-        prefix, klass = "+", "value-neg"   # rouge
-    st.markdown(f"<div class='{klass}'>{prefix} {euro(abs(dH))}</div>", unsafe_allow_html=True)
+        prefix, klass = "+", "value-neg"   # (ta couleur actuelle #859592)
+    st.markdown(f"<div class='big-val'><span class='{klass}'>{prefix} {euro(abs(dH))}</span></div>", unsafe_allow_html=True)
 
 # Notes (après les colonnes pour ne pas décaler les chiffres)
 st.markdown(
