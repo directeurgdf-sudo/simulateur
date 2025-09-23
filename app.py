@@ -48,7 +48,7 @@ section[data-testid="stSidebar"] input {{
 
 /* Écart total : couleur uniquement (taille héritée de .big-val) */
 .value-pos {{ color:{BRAND_GREEN}; font-weight:700; }}  /* utilisé pour NEGATIF */
-.value-neg {{ color:#e03a3a; font-weight:700; }}       /* utilisé pour POSITIF */
+.value-neg {{ color:#859592; font-weight:700; }}       /* utilisé pour POSITIF */
 .label-small {{ color:#6b7280; text-transform:uppercase; letter-spacing:.04em; font-size:.9rem; }}
 
 /* Notes de bas de page */
