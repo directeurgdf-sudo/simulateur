@@ -116,7 +116,7 @@ with col1:
     st.markdown('<span class="pill pill-green">Modèle 2025</span>', unsafe_allow_html=True)
     st.write("")
     valeur("Contributions forfaitaires<sup>(1)</sup>", E)
-    valeur("Contribution volontaire à la campagne de Marque", Fv)
+    valeur("Contribution volontaire 2025", Fv)
     valeur('Contribution sur les loyers <span class="accent">0,84&nbsp;%</span>', G)
     st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
     valeur("TOTAL", H)
