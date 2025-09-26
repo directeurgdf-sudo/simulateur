@@ -106,7 +106,8 @@ st.sidebar.header("✍️ Remplissez")
 A = read_int_with_grouping("Votre parc d'annonces en SR (exclusivité)", 650, key="A")
 B = read_int_with_grouping("Votre parc d'annonces en RP/PP (partagés)", 300, key="B")
 C = read_int_with_grouping("Total des loyers propriétaires (€)", 4_000_000, key="C")
-F = read_int_with_grouping("Votre contribution volontaire à la campagne de marque 2025 (€)", 15_000, key="F")
+# ⬇️ Modif 1 : libellé avec HT (€)
+F = read_int_with_grouping("Votre contribution volontaire à la campagne de marque 2025 HT (€)", 15_000, key="F")
 
 # ---------------- Calculs ----------------
 # Modèle 2025
@@ -170,14 +171,15 @@ with tot3:
         prefix, klass = "–", "value-pos"   # vert
     else:
         prefix, klass = "+", "value-neg"   # rouge
-    # Écart dans le même gabarit .big-val, couleur via <span>
     st.markdown(f"<div class='big-val'><span class='{klass}'>{prefix} {euro(abs(dH))}</span></div>", unsafe_allow_html=True)
 
 # Notes (après)
+# ⬇️ Modif 2 : ajout de la (3)
 st.markdown(
     "<div class='footnotes'>"
     "<div><sup>(1)</sup> 20€/hébergement en SR, 30€/hébergement en RP/PP</div>"
     "<div><sup>(2)</sup> Augmentation du taux et suppression du plafonnement</div>"
+    "<div><sup>(3)</sup> Hors plafonnement</div>"
     "</div>",
     unsafe_allow_html=True
 )
