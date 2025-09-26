@@ -1,183 +1,159 @@
+# app.py
 import streamlit as st
-import re
 
-# ---------------- Config ----------------
-st.set_page_config(
-    page_title="Simulateur départemental – Financement de la SAS Gîtes de France",
-    page_icon="🏡",
-    layout="wide",
-)
+# -------------------------------
+# Réglages & styles
+# -------------------------------
+st.set_page_config(page_title="Simulateur – Financement SAS Gîtes de France", layout="wide")
 
-# ---------------- Styles ----------------
-BRAND_GREEN = "#4bab77"
-
-st.markdown(f"""
+CUSTOM_CSS = """
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Raleway:wght@400;600;700&display=swap');
-* {{ font-family: 'Raleway', sans-serif; }}
-
-/* Titre */
-.header-wrap {{ margin-top:-40px; margin-bottom:40px; }}
-
-/* Sidebar */
-section[data-testid="stSidebar"] {{ background:{BRAND_GREEN} !important; }}
-section[data-testid="stSidebar"] label {{ color:#fff !important; }}
-section[data-testid="stSidebar"] input {{
-  color:#111827 !important; background:#fff !important; border-radius:8px;
-}}
-
-/* Pills */
-.pill {{
-  display:inline-block; padding:10px 14px; border-radius:20px;
-  font-weight:700; font-size:1.05rem; margin-bottom:8px;
-}}
-.pill-green  {{ background:{BRAND_GREEN}; color:#fff; }}
-.pill-outline{{ background:#fff; color:#111827; border:2px solid {BRAND_GREEN}; }}
-
-/* Accents */
-.accent {{ color:{BRAND_GREEN}; font-weight:800; }}
-
-/* Valeurs (gabarit commun) */
-.big-val {{
-  font-size:1.6rem; line-height:1.3; color:#111827;
-  margin:4px 0 14px; font-weight:500;
-}}
-
-/* Séparateur */
-.hr {{ border-top:1px solid #e5e7eb; margin:16px 0; }}
-
-/* Écart total : couleur uniquement (taille héritée de .big-val) */
-.value-pos {{ color:{BRAND_GREEN}; font-weight:700; }}  /* utilisé pour NEGATIF */
-.value-neg {{ color:#859592; font-weight:700; }}       /* utilisé pour POSITIF */
-.label-small {{ color:#6b7280; text-transform:uppercase; letter-spacing:.04em; font-size:.9rem; }}
-
-/* Notes de bas de page */
-.footnotes {{ color:#6b7280; font-size:.9rem; margin-top:8px; }}
-.footnotes sup {{ margin-right:4px; }}
+/* Police tabulaire + alignement à droite pour tous les montants */
+.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+/* Titres pastille */
+.pill {
+  display:inline-flex;align-items:center;gap:.5rem;
+  padding:.35rem .9rem;border:2px solid #2e7d32;border-radius:999px;
+  color:#2e7d32;font-weight:700;
+}
+.pill--dark { border-color:#2e7d32; background:#2e7d32; color:#fff; }
+.subtle { color:#6b7280; font-size:.82rem; }
+.hr { border-top:1px solid #e5e7eb; margin:.75rem 0; }
+.card { border:1px solid #e5e7eb; border-radius:1rem; padding:1rem 1.25rem; }
+.caption { color:#6b7280; font-size:.8rem; }
+.leftpane .stNumberInput>div>div>input,
+.leftpane .stTextInput>div>div>input { font-variant-numeric: tabular-nums; }
 </style>
-""", unsafe_allow_html=True)
+"""
+st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
 
-# ---------------- Utilitaires ----------------
-def euro(x: float) -> str:
-    """Format 1 234 567,89 (espaces + virgule)"""
-    return f"{x:,.2f}".replace(",", " ").replace(".", ",")
+# -------------------------------
+# Helpers
+# -------------------------------
+def eur(x: float) -> str:
+    """Format EUR fr-FR (espaces milliers, virgule décimale)."""
+    s = f"{x:,.2f}".replace(",", " ").replace(".", ",")
+    return f"{s}"
 
-def euro_int(n: int) -> str:
-    """Format 1234567 -> '1 234 567' (pour affichage dans la sidebar)"""
-    return f"{n:,}".replace(",", " ")
+def signed_eur(delta: float) -> str:
+    sign = "+" if delta > 0 else ("−" if delta < 0 else "±")
+    return f"{sign} {eur(abs(delta))}"
 
-def read_int_with_grouping(label: str, default: int, key: str) -> int:
-    """
-    Text input qui conserve les séparateurs de milliers pendant la saisie,
-    avec callback on_change (évite StreamlitAPIException).
-    """
-    # Valeur initiale
-    if key not in st.session_state or st.session_state[key] == "":
-        st.session_state[key] = euro_int(default)
+# Hypothèses (doc)
+FORFAIT_SR = 20.0
+FORFAIT_RP = 30.0
+TAUX_2025 = 0.0084  # 0,84 %
+TAUX_2026 = 0.0115  # 1,15 %
 
-    # Callback qui reformate
-    def _on_change():
-        raw = st.session_state.get(key, "")
-        digits = re.sub(r"[^\d]", "", raw or "")
-        val = int(digits) if digits else 0
-        st.session_state[key] = euro_int(val)
+# -------------------------------
+# UI – Colonne gauche (inputs)
+# -------------------------------
+with st.sidebar:
+    st.markdown("## 🧮 Remplissez", help="Saisissez vos données départements")
+    st.markdown('<div class="leftpane">', unsafe_allow_html=True)
 
-    # Widget
-    st.sidebar.text_input(label, key=key, value=st.session_state[key], on_change=_on_change)
+    sr = st.number_input("Votre parc d'annonces en SR (exclusivité)",
+                         min_value=0, step=1, value=150)
+    rp = st.number_input("Votre parc d'annonces en RP/PP (partagés)",
+                         min_value=0, step=1, value=300)
+    loyers = st.number_input("Total des loyers propriétaires (€)",
+                             min_value=0, step=1000, value=4_000_000)
+    volontaire_2025 = st.number_input("Votre contribution volontaire à la campagne de marque 2025 **HT (€)**",
+                                      min_value=0, step=100, value=12_400,
+                                      help="Affichée HT. En 2026, cette contribution est indiquée comme « incluse » (0 €).")
+    st.markdown("</div>", unsafe_allow_html=True)
 
-    # Valeur numérique pour calculs
-    digits = re.sub(r"[^\d]", "", st.session_state.get(key, ""))
-    return int(digits) if digits else default
+# -------------------------------
+# Calculs
+# -------------------------------
+forfait_2025 = sr * FORFAIT_SR + rp * FORFAIT_RP
+forfait_2026 = sr * FORFAIT_SR + rp * FORFAIT_RP  # inchangé
 
-def valeur(label_html: str, val: float):
-    """Libellé (HTML autorisé) + valeur uniforme."""
-    st.markdown(label_html, unsafe_allow_html=True)
-    st.markdown(f"<div class='big-val'>{euro(val)}</div>", unsafe_allow_html=True)
+campagne_2025 = float(volontaire_2025)
+campagne_2026 = 0.0  # inclus
 
-# ---------------- Titre ----------------
-st.markdown("""
-<div class="header-wrap">
-  <h1>Simulateur départemental – Financement de la SAS Gîtes de France</h1>
-</div>
-""", unsafe_allow_html=True)
+loyers_2025 = loyers * TAUX_2025
+loyers_2026 = loyers * TAUX_2026
 
-# ---------------- Entrées ----------------
-st.sidebar.header("✍️ Remplissez")
-A = read_int_with_grouping("Votre parc d'annonces en SR (exclusivité)", 150, key="A")
-B = read_int_with_grouping("Votre parc d'annonces en RP/PP (partagés)", 300, key="B")
-C = read_int_with_grouping("Total des loyers propriétaires (€)", 4_000_000, key="C")
-F = read_int_with_grouping("Votre contribution volontaire à la campagne de marque 2025 (€)", 12_400, key="F")
+total_2025 = forfait_2025 + campagne_2025 + loyers_2025
+total_2026 = forfait_2026 + campagne_2026 + loyers_2026
 
-# ---------------- Calculs ----------------
-# Modèle 2025
-E = (A * 20) + (B * 30)     # 20€/SR, 30€/RP/PP
-Fv = float(F)               # contribution volontaire (2025)
-G = float(C) * 0.0084       # 0,84 %
-H = E + Fv + G              # total
+# Différences
+diff_forfait = forfait_2026 - forfait_2025
+diff_campagne = campagne_2026 - campagne_2025
+diff_loyers = loyers_2026 - loyers_2025
+diff_total = total_2026 - total_2025
 
-# Proposition 2026
-J = (A * 20) + (B * 30)     # mêmes forfaits
-K = 0.0                     # campagne incluse
-L = float(C) * 0.0115       # 1,15 %
-M = J + K + L               # total
+# -------------------------------
+# UI – 3 colonnes
+# -------------------------------
+c1, c2, c3 = st.columns((1, 1, 1))
 
-# Différences (2026 – 2025)
-dE, dF, dG = (J - E), (K - Fv), (L - G)
-dH = M - H
+with c1:
+    st.markdown('<div class="pill">Modèle 2025</div>', unsafe_allow_html=True)
+    st.markdown('<div class="card">', unsafe_allow_html=True)
 
-# ---------------- Affichage ----------------
-# 1) Ligne "contenus" (hors TOTAL)
-col1, col2, col3 = st.columns(3)
+    st.markdown("**Contributions forfaitaires**  <span class='subtle'>(1)</span>", unsafe_allow_html=True)
+    st.markdown(f"<div class='num' style='font-size:1.6rem'>{eur(forfait_2025)}</div>", unsafe_allow_html=True)
 
-with col1:
-    st.markdown('<span class="pill pill-green">Modèle 2025</span>', unsafe_allow_html=True)
-    st.write("")
-    valeur("Contributions forfaitaires<sup>(1)</sup>", E)
-    valeur("Contribution volontaire 2025", Fv)
-    valeur('Contribution sur les loyers <span class="accent">0,84&nbsp;%</span>', G)
+    st.markdown("**Contribution volontaire 2025**", unsafe_allow_html=True)
+    st.markdown(f"<div class='num' style='font-size:1.6rem'>{eur(campagne_2025)}</div>", unsafe_allow_html=True)
+
+    st.markdown(f"**Contribution sur les loyers** <span class='subtle'>{TAUX_2025*100:.2f} %</span>", unsafe_allow_html=True)
+    st.markdown(f"<div class='num' style='font-size:1.6rem'>{eur(loyers_2025)}</div>", unsafe_allow_html=True)
+
     st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
+    st.markdown("**TOTAL**", unsafe_allow_html=True)
+    st.markdown(f"<div class='num' style='font-size:1.9rem'>{eur(total_2025)}</div>", unsafe_allow_html=True)
 
-with col2:
-    st.markdown('<span class="pill pill-green">Proposition de modèle 2026</span>', unsafe_allow_html=True)
-    st.write("")
-    valeur("Contributions forfaitaires<sup>(1)</sup>", J)
-    valeur('Contribution à la campagne de Marque <span class="accent">(inclus)</span>', K)
-    valeur('Contribution sur les loyers <span class="accent">1,15&nbsp;%</span><sup>(2)</sup>', L)
+    st.markdown('</div>', unsafe_allow_html=True)
+
+with c2:
+    st.markdown('<div class="pill">Proposition de modèle 2026</div>', unsafe_allow_html=True)
+    st.markdown('<div class="card">', unsafe_allow_html=True)
+
+    st.markdown("**Contributions forfaitaires**  <span class='subtle'>(1)</span>", unsafe_allow_html=True)
+    st.markdown(f"<div class='num' style='font-size:1.6rem'>{eur(forfait_2026)}</div>", unsafe_allow_html=True)
+
+    st.markdown("**Contribution à la campagne de Marque** <span class='subtle'>(inclus)</span>", unsafe_allow_html=True)
+    st.markdown(f"<div class='num' style='font-size:1.6rem'>{eur(campagne_2026)}</div>", unsafe_allow_html=True)
+
+    st.markdown(f"**Contribution sur les loyers** <span class='subtle'>{TAUX_2026*100:.2f} %</span>  <span class='subtle'>(2)</span>",
+                unsafe_allow_html=True)
+    st.markdown(f"<div class='num' style='font-size:1.6rem'>{eur(loyers_2026)}</div>", unsafe_allow_html=True)
+
     st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
+    st.markdown("**TOTAL**  <span class='subtle'>(3)</span>", unsafe_allow_html=True)
+    st.markdown(f"<div class='num' style='font-size:1.9rem'>{eur(total_2026)}</div>", unsafe_allow_html=True)
 
-with col3:
-    st.markdown('<span class="pill pill-outline">Différence (2026 – 2025)</span>', unsafe_allow_html=True)
-    st.write("")
-    valeur("Écart contributions forfaitaires", dE)
-    valeur("Écart contribution à la campagne", dF)
-    valeur("Écart contribution loyers", dG)
+    st.markdown('</div>', unsafe_allow_html=True)
+
+with c3:
+    st.markdown('<div class="pill">Différence (2026 – 2025)</div>', unsafe_allow_html=True)
+    st.markdown('<div class="card">', unsafe_allow_html=True)
+
+    st.markdown("**Écart contributions forfaitaires**", unsafe_allow_html=True)
+    st.markdown(f"<div class='num' style='font-size:1.6rem'>{signed_eur(diff_forfait)}</div>", unsafe_allow_html=True)
+
+    st.markdown("**Écart contribution à la campagne**", unsafe_allow_html=True)
+    st.markdown(f"<div class='num' style='font-size:1.6rem'>{signed_eur(diff_campagne)}</div>", unsafe_allow_html=True)
+
+    st.markdown("**Écart contribution loyers**", unsafe_allow_html=True)
+    st.markdown(f"<div class='num' style='font-size:1.6rem'>{signed_eur(diff_loyers)}</div>", unsafe_allow_html=True)
+
     st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
+    st.markdown("**ÉCART TOTAL**", unsafe_allow_html=True)
+    st.markdown(f"<div class='num' style='font-size:1.9rem'>{signed_eur(diff_total)}</div>", unsafe_allow_html=True)
 
-# 2) Ligne "TOTaux" — parfaitement alignée (même rangée)
-tot1, tot2, tot3 = st.columns(3)
+    st.markdown('</div>', unsafe_allow_html=True)
 
-with tot1:
-    st.markdown('<div class="label-small">TOTAL</div>', unsafe_allow_html=True)
-    st.markdown(f"<div class='big-val'>{euro(H)}</div>", unsafe_allow_html=True)
-
-with tot2:
-    st.markdown('<div class="label-small">TOTAL</div>', unsafe_allow_html=True)
-    st.markdown(f"<div class='big-val'>{euro(M)}</div>", unsafe_allow_html=True)
-
-with tot3:
-    st.markdown('<div class="label-small">ÉCART TOTAL</div>', unsafe_allow_html=True)
-    if dH < 0:
-        prefix, klass = "–", "value-pos"   # vert
-    else:
-        prefix, klass = "+", "value-neg"   # rouge
-    # Écart dans le même gabarit .big-val, couleur via <span>
-    st.markdown(f"<div class='big-val'><span class='{klass}'>{prefix} {euro(abs(dH))}</span></div>", unsafe_allow_html=True)
-
-# Notes (après)
-st.markdown(
-    "<div class='footnotes'>"
-    "<div><sup>(1)</sup> 20€/hébergement en SR, 30€/hébergement en RP/PP</div>"
-    "<div><sup>(2)</sup> Augmentation du taux et suppression du plafonnement</div>"
-    "</div>",
-    unsafe_allow_html=True
-)
+# -------------------------------
+# Notes de bas de tableau
+# -------------------------------
+st.markdown("---")
+st.markdown("**(1)** 20€/hébergement en **SR**, 30€/hébergement en **RP/PP**", unsafe_allow_html=True)
+st.markdown("**(2)** Augmentation du taux et suppression du plafonnement", unsafe_allow_html=True)
+st.markdown("**(3)** Hors plafonnement", unsafe_allow_html=True)
