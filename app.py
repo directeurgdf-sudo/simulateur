@@ -158,7 +158,7 @@ with col3:
 tot1, tot2, tot3 = st.columns(3)
 
 with tot1:
-    st.markdown('<div class="label-small">TOTAL</div>', unsafe_allow_html=True)
+    st.markdown('<div class="label-small">TOTAL (3)</div>', unsafe_allow_html=True)
     st.markdown(f"<div class='big-val'>{euro(H)}</div>", unsafe_allow_html=True)
 
 with tot2:
